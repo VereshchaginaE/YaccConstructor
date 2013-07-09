@@ -101,6 +101,7 @@ let parseRules (filename:string) : Definition.t<Source.t, Source.t> =
 %token <IL.Source.t> PATTERN PARAM
 %token <string> SHARPLINE
 %token <IL.Source.t> DLABEL
+%token AMPERSAND 
 
 %start file
 %type <IL.Definition.t<IL.Source.t, IL.Source.t>> file
@@ -277,6 +278,8 @@ prim: prim STAR            {PMany $1}
     | call                 {$1}
     | lbl_seq              {$1}
     | LITERAL              {PLiteral $1}
+	| boolean_grammar
+	| EXCLAMATION {}
 
 meta_param: prim {$1}
 
@@ -293,3 +296,9 @@ call: UIDENT {PToken $1}
       }
 
 tada_rule : SHARPLINE {} | EOF {} 
+
+negative : EXCLIMATION alts 
+
+conjuction : ({None} | AMPERSAND (negative | alts)) conjuction
+
+boolean_grammar : (negative | alts)  conjuction
