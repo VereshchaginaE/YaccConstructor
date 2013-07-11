@@ -296,8 +296,8 @@ call: UIDENT {PToken $1}
 
 tada_rule : SHARPLINE {} | EOF {} 
 
-negation : EXCLAMATION LPAREN seq RPAREN {PNegat $3}
+negation : EXCLAMATION LPAREN alts RPAREN {PNegat $3}
 
-negation_seq : negation {$1} | LPAREN seq RPAREN {$2}
+negation_seq : negation {$1} | LPAREN alts RPAREN {$2}
 
 boolean_grammar : negation_seq {$1} | negation_seq AMPERSAND boolean_grammar {PConjuct ($1, $3)}
