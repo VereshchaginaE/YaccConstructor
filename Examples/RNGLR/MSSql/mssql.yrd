@@ -58,7 +58,8 @@ batch_body:
      | drop_procedure 
      | create_table
      | insert
-  
+	 | error 
+	 
 rollback_transaction:
     'ROLLBACK'
     ['TRAN' | 'TRANSACTION']

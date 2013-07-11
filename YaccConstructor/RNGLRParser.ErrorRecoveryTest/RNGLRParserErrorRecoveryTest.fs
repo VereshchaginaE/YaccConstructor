@@ -29,7 +29,7 @@ let inline translate (f : TranslateArguments<_,_> -> 'b -> 'c) (ast : 'b) =
 [<TestFixture>]
 type ``RNGLR error recovery tests`` () =
 
-    [<Test>]
+    //[<Test>]
     member test.``Calc error after right brace``() =
         let parser = RNGLR.ParseCalcErrorAmb.buildAst
         let path = dir + "Calc error after right brace.txt"
@@ -75,7 +75,7 @@ type ``RNGLR error recovery tests`` () =
 
         match run path parser with
         | Parser.Error (num, tok, err, debugs) -> 
-            debugs.drawGSSDot "Calc error_in_middle4.dot"
+            debugs.drawGSSDot "Calc missing left brace.dot"
             printErr (num, tok, err)
         | Parser.Success mAst -> 
             mAst.PrintAst() 
@@ -88,7 +88,7 @@ type ``RNGLR error recovery tests`` () =
 
         match run path parser with
         | Parser.Error (num, tok, err, debugs) -> 
-            debugs.drawGSSDot "Calc error_in_middle5.dot"
+            debugs.drawGSSDot "Calc missing operand.dot"
             printErr (num, tok, err)
         | Parser.Success mAst -> 
             mAst.PrintAst() 
@@ -107,7 +107,7 @@ type ``RNGLR error recovery tests`` () =
             mAst.PrintAst() 
             RNGLR.ParseCalcErrorAmb.defaultAstToDot mAst "Calc missing operator.dot"
 
-    [<Test>]
+    //[<Test>]
     member test.``Calc missing right brace``() = 
         let parser = RNGLR.ParseCalcErrorAmb.buildAst
         let path = dir + "Calc missing right brace.txt"                                    
@@ -131,7 +131,30 @@ type ``RNGLR error recovery tests`` () =
         | Parser.Success mAst -> 
             mAst.PrintAst()
             RNGLR.ParseCalcErrorAmb.defaultAstToDot mAst "Calc no operand in the end.dot"
+        
+    [<Test>]
+    member test.``Many reductions before error``() = 
+        let parser = RNGLR.ParseManyReductions.buildAst
+        let path = dir + "Many reductions before error.txt"
 
+        match run path parser with 
+        | Parser.Error (num, tok, err, debugs) ->
+            printErr (num, tok, err)
+        | Parser.Success mAst ->
+            mAst.PrintAst()
+            RNGLR.ParseManyReductions.defaultAstToDot mAst "Many reductions.dot"
+
+    [<Test>]
+    member test.``Eps error in the end``() = 
+        let parser = RNGLR.ParseErrorToEps.buildAst
+        let path = dir + "Eps error in the end.txt"
+
+        match run path parser with 
+        | Parser.Error (num, tok, err, debugs) ->
+            printErr (num, tok, err)
+        | Parser.Success mAst ->
+            mAst.PrintAst()
+            RNGLR.ParseErrorToEps.defaultAstToDot mAst "Eps error in the end.dot"
 
 [<EntryPoint>]
-(new ``RNGLR error recovery tests``()).``Calc error inside in braces2``()
+(new ``RNGLR error recovery tests``()).``Many reductions before error``()

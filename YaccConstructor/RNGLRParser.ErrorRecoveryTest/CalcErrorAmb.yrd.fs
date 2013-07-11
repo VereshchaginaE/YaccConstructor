@@ -6,12 +6,23 @@ open Yard.Generators.RNGLR.Parser
 open Yard.Generators.RNGLR
 open Yard.Generators.RNGLR.AST
 type Token =
-    | A of int
-    | ADD of int
-    | LBRACE of int
-    | RBRACE of int
-    | RNGLR_EOF of int
-    | SEMICOLON of int
+    | A of (int)
+    | ADD of (int)
+    | LBRACE of (int)
+    | RBRACE of (int)
+    | RNGLR_EOF of (int)
+    | SEMICOLON of (int)
+
+let genLiteral (str : string) posStart posEnd =
+    match str.ToLower() with
+    | x -> failwithf "Literal %s undefined" x
+let tokenData = function
+    | A x -> box x
+    | ADD x -> box x
+    | LBRACE x -> box x
+    | RBRACE x -> box x
+    | RNGLR_EOF x -> box x
+    | SEMICOLON x -> box x
 
 let numToString = function
     | 0 -> "error"
@@ -29,6 +40,7 @@ let numToString = function
     | 12 -> "RNGLR_EOF"
     | 13 -> "SEMICOLON"
     | _ -> ""
+
 let tokenToNumber = function
     | A _ -> 8
     | ADD _ -> 9
@@ -37,6 +49,15 @@ let tokenToNumber = function
     | RNGLR_EOF _ -> 12
     | SEMICOLON _ -> 13
 
+let isLiteral = function
+    | A _ -> false
+    | ADD _ -> false
+    | LBRACE _ -> false
+    | RBRACE _ -> false
+    | RNGLR_EOF _ -> false
+    | SEMICOLON _ -> false
+
+let getLiteralNames = []
 let mutable private cur = 0
 let leftSide = [|2; 7; 6; 6; 1; 1; 1; 3; 3; 4; 5; 5|]
 let private rules = [|3; 6; 2; 4; 8; 10; 5; 11; 1; 9; 1; 0; 1; 13; 2; 0; 1|]

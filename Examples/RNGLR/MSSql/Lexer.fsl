@@ -71,10 +71,8 @@ rule tokens = parse
  | "*"      { getLiteral id lexbuf "*" }
  //| "$"      { getLiteral lexbuf "$" } 
  | ident {  let l = LexBuffer<_>.LexemeString(lexbuf)
-            let hasdot = l.IndexOf '.' <> -1
-            match makeIdent false l (new Pair(id, int64 lexbuf.StartPos.AbsoluteOffset * _symbolL), 
-                                     new Pair(id, int64 lexbuf.EndPos.AbsoluteOffset * _symbolL)) with
-            | x -> x
+            makeIdent false l (new Pair(id, int64 lexbuf.StartPos.AbsoluteOffset * _symbolL), 
+                                     new Pair(id, int64 lexbuf.EndPos.AbsoluteOffset * _symbolL))
          }
  | "--" [^'\r' '\n']*  { tokens lexbuf (* parser knows nothing about comments *) }  
  | "/*" { commendepth := 1; clearBuf(); multiline_comment lexbuf }
@@ -100,3 +98,5 @@ and multiline_comment = parse
   | eof { failwith "unclosed comment in the end of file" }
   | [^ '\r' '\n' '*' '/']+ { appendBuf(LexBuffer<_>.LexemeString(lexbuf)); multiline_comment lexbuf } 
   | _ { appendBuf(LexBuffer<_>.LexemeString(lexbuf)); multiline_comment lexbuf }
+
+  
