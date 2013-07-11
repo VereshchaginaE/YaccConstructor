@@ -201,12 +201,13 @@ and  main = parse
       }
     | "(" {LPAREN <| lex2source lexbuf}
     | ")" {RPAREN <| lex2source lexbuf}
+	| "!" {EXCLAMATION <| lex2source lexbuf}
+	| "&" {AMPERSAND <| lex2source lexbuf}
     | _
        { raise(Lexical_error
                 ("illegal character " + (*String.escaped*)LexBuffer<_>.LexemeString(lexbuf),
                   lexbuf.StartPos.AbsoluteOffset)) }
-	| "!" {EXCLAMATION <| lex2source lexbuf}
-	| "&"  {AMPERSAND <| lex2source lexbuf}			  				  		
+			  				  		
 (*  ------------------------ *)
 and predicate = parse
     "}=>"    { lexbuf.StartPos }

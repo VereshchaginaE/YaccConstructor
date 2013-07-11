@@ -530,3 +530,34 @@ type ``Yardfrontend token tests`` () =
 
 //[<EntryPoint>]
 //(new ``Yardfrontend label tests`` ()).``weight test incorrect input`` ()
+    
+    
+[<TestFixture>]
+type ``Yard frontend Boolean Grammars tests`` () =
+    let basePath = "../../../../Tests/YardFrontend/BooleanGrammars"
+    let cp file = System.IO.Path.Combine(basePath,file)
+
+    [<Test>]
+    member test.``simple negation test`` () = 
+        let rules =
+            verySimpleRules "s"
+                [{
+                    omit = false                  
+                    rule = PNegat(PToken (getSource "A" 0 0))
+                    binding = None
+                    checker = None
+                }]
+        let expected = defaultDefinition rules
+        preprocessorTest (cp "simplenegation.yrd") expected
+    [<Test>]
+    member test.``simple cojuction test`` () = 
+        let rules =
+            verySimpleRules "s"
+                [{
+                    omit = false                  
+                    rule = PConjuct(PToken (getSource "A" 0 0), PToken (getSource "B" 0 0))
+                    binding = None
+                    checker = None
+                }]
+        let expected = defaultDefinition rules
+        preprocessorTest (cp "simpleconjuction.yrd") expected
