@@ -205,7 +205,8 @@ and  main = parse
        { raise(Lexical_error
                 ("illegal character " + (*String.escaped*)LexBuffer<_>.LexemeString(lexbuf),
                   lexbuf.StartPos.AbsoluteOffset)) }
-
+	| "!" {EXCLAMATION <| lex2source lexbuf}
+	| "&"  {AMPERSAND <| lex2source lexbuf}			  				  		
 (*  ------------------------ *)
 and predicate = parse
     "}=>"    { lexbuf.StartPos }

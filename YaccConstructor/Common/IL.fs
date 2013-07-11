@@ -97,7 +97,10 @@ module Production = begin
         |PSome    of (t<'patt,'expr>)
         /// expr?
         |POpt     of (t<'patt,'expr>)
-
+        ///!expr
+        |PNegat of (t<'patt,'expr>)
+        /// & expr
+        |PConjuct of (t<'patt,'expr>) * (t<'patt,'expr>)
         with
         override this.ToString() =
 //            incr num
@@ -114,6 +117,8 @@ module Production = begin
                         + ">>"
                     
             match this with
+            |PNegat x -> "!" + x.ToString()
+            |PConjuct (x, y) -> x.ToString() + " & " + y.ToString()
             |PAlt (x, y) -> x.ToString() + " | " + y.ToString()
             |PSeq (ruleSeq, attrs, l) ->
                 let strAttrs =

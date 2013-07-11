@@ -278,8 +278,7 @@ prim: prim STAR            {PMany $1}
     | call                 {$1}
     | lbl_seq              {$1}
     | LITERAL              {PLiteral $1}
-	| boolean_grammar
-	| EXCLAMATION {}
+	| LPAREN boolean_grammar RPAREN {$2}
 
 meta_param: prim {$1}
 
@@ -297,8 +296,10 @@ call: UIDENT {PToken $1}
 
 tada_rule : SHARPLINE {} | EOF {} 
 
-negative : EXCLIMATION alts 
+negation : EXCLAMATION seq {$2}
 
-conjuction : ({None} | AMPERSAND (negative | alts)) conjuction
+negation_seq : negation {$1} | seq {$1}
 
-boolean_grammar : (negative | alts)  conjuction
+conjuction : AMPERSAND negation_seq {$2} | AMPERSAND negation_seq conjuction {$2}
+
+boolean_grammar : negation_seq conjuction {$1}

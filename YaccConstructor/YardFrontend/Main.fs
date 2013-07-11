@@ -28,6 +28,8 @@ module Lexer = Yard.Frontends.YardFrontend.GrammarLexer
 open GrammarParser
 
 let private tokenFun f = function
+    | EXCLAMATION st
+    | AMPERSAND st
     | ACTION st
     | BAR st
     | COLON st
