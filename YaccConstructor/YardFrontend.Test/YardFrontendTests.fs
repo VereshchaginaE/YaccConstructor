@@ -543,21 +543,233 @@ type ``Yard frontend Boolean Grammars tests`` () =
             verySimpleRules "s"
                 [{
                     omit = false                  
-                    rule = PNegat(PToken (getSource "A" 0 0))
+                    rule = PNegat(PSeq([{
+                                         omit = false
+                                         rule = PToken (getSource "A" 0 0)
+                                         binding = None
+                                         checker = None
+                                       }], None, None))
                     binding = None
                     checker = None
                 }]
         let expected = defaultDefinition rules
-        preprocessorTest (cp "simplenegation.yrd") expected
+        preprocessorTest (cp "simpleNegation.yrd") expected
     [<Test>]
     member test.``simple cojuction test`` () = 
         let rules =
             verySimpleRules "s"
                 [{
                     omit = false                  
-                    rule = PConjuct(PToken (getSource "A" 0 0), PToken (getSource "B" 0 0))
+                    rule = PConjuct(PSeq([{
+                                           omit = false
+                                           rule = PToken (getSource "A" 0 0)
+                                           binding = None
+                                           checker = None
+                                         }], None, None),
+                                       PSeq([{
+                                              omit = false
+                                              rule = PToken (getSource "B" 0 0)
+                                              binding = None
+                                              checker = None
+                                            }], None, None))
                     binding = None
                     checker = None
                 }]
         let expected = defaultDefinition rules
-        preprocessorTest (cp "simpleconjuction.yrd") expected
+        preprocessorTest (cp "simpleConjuction.yrd") expected
+
+    [<Test>]
+    member test.``triple cojuction test`` () = 
+        let rules =
+            verySimpleRules "s"
+                [{
+                    omit = false                  
+                    rule = PConjuct(PSeq([{
+                                           omit = false
+                                           rule = PToken (getSource "A" 0 0)
+                                           binding = None
+                                           checker = None
+                                         }], None, None),
+                                    PConjuct(PSeq([{
+                                                    omit = false
+                                                    rule = PToken (getSource "B" 0 0)
+                                                    binding = None
+                                                    checker = None
+                                                  }], None, None),
+                                             PSeq([{
+                                                     omit = false
+                                                     rule = PToken (getSource "C" 0 0)
+                                                     binding = None
+                                                     checker = None
+                                                 }], None, None)))
+                    binding = None
+                    checker = None
+                }]
+        let expected = defaultDefinition rules
+        preprocessorTest (cp "tripleConjuction.yrd") expected
+
+    [<Test>]
+    member test.``simple cojuction and negation test`` () = 
+        let rules =
+            verySimpleRules "s"
+                [{
+                    omit = false                  
+                    rule = PConjuct(PSeq([{
+                                           omit = false
+                                           rule = PToken (getSource "A" 0 0)
+                                           binding = None
+                                           checker = None
+                                         }], None, None),
+                                     PNegat(PSeq([{
+                                                   omit = false
+                                                   rule = PToken (getSource "B" 0 0)
+                                                   binding = None
+                                                   checker = None
+                                                 }], None, None)))
+                    binding = None
+                    checker = None
+                }]
+        let expected = defaultDefinition rules
+        preprocessorTest (cp "simpleConjuctionWithNegation.yrd") expected
+
+    [<Test>]
+    member test.``priority test`` () = 
+        let rules =
+            verySimpleRules "s"
+                [{
+                    omit = false                  
+                    rule = PConjuct(PConjuct(PSeq([{
+                                                    omit = false
+                                                    rule = PToken (getSource "A" 0 0)
+                                                    binding = None
+                                                    checker = None
+                                                  }], None, None),
+                                             PSeq([{
+                                                     omit = false
+                                                     rule = PToken (getSource "B" 0 0)
+                                                     binding = None
+                                                     checker = None
+                                                 }], None, None)),
+                                    PConjuct(PSeq([{
+                                                    omit = false
+                                                    rule = PToken (getSource "C" 0 0)
+                                                    binding = None
+                                                    checker = None
+                                                  }], None, None),
+                                             PNegat(PSeq([{
+                                                           omit = false
+                                                           rule = PToken (getSource "D" 0 0)
+                                                           binding = None
+                                                           checker = None
+                                                          }], None, None))))
+                    binding = None
+                    checker = None
+                }]
+        let expected = defaultDefinition rules
+        preprocessorTest (cp "priority.yrd") expected
+
+    [<Test>]
+    member test.``quadruple conjuction test`` () = 
+        let rules =
+            verySimpleRules "s"
+                [{
+                    omit = false                  
+                    rule = PConjuct(PSeq([{
+                                           omit = false
+                                           rule = PToken (getSource "A" 0 0)
+                                           binding = None
+                                           checker = None
+                                         }], None, None),
+                                    PConjuct(PSeq([{
+                                                    omit = false
+                                                    rule = PToken (getSource "B" 0 0)
+                                                    binding = None
+                                                    checker = None
+                                                  }], None, None),
+                                             PConjuct(PSeq([{
+                                                             omit = false
+                                                             rule = PToken (getSource "C" 0 0)
+                                                             binding = None
+                                                             checker = None
+                                                            }], None, None),
+                                                       PSeq([{
+                                                              omit = false
+                                                              rule = PToken (getSource "D" 0 0)
+                                                              binding = None
+                                                              checker = None
+                                                             }], None, None))))
+                    binding = None
+                    checker = None
+                }]
+        let expected = defaultDefinition rules
+        preprocessorTest (cp "quadrupleConjuction.yrd") expected
+
+
+
+    [<Test>]
+    member test.``boolean grammar test #1`` () = 
+        let rules =
+            verySimpleRules "s"
+                [{
+                    omit = false                  
+                    rule = PAlt(PSeq([{
+                                       omit = false
+                                       rule = PNegat (PToken(getSource "A" 0 0))
+                                       binding = None
+                                       checker = None
+                                       };
+                                       {
+                                        omit = false
+                                        rule = PToken (getSource "B" 0 0)
+                                        binding = None
+                                        checker = None
+                                        }], None, None),
+                                PSeq([{
+                                        omit = false
+                                        rule = PToken (getSource "C" 0 0)
+                                        binding = None
+                                        checker = None
+                                    }], None, None))
+                                                       
+                    binding = None
+                    checker = None
+                }]
+        let expected = defaultDefinition rules
+        preprocessorTest (cp "booleanGrammar#1.yrd") expected
+
+    [<Test>]
+    member test.``boolean grammar test #2`` () = 
+        let rules =
+            verySimpleRules "s"
+                [{
+                    omit = false                  
+                    rule = PSeq([{
+                                    omit = false
+                                    rule = PConjuct (PToken(getSource "A" 0 0), 
+                                                        PAlt(PSeq([{
+                                                                    omit = false
+                                                                    rule = PToken (getSource "B" 0 0)
+                                                                    binding = None
+                                                                    checker = None
+                                                                }], None, None),
+                                                            PSeq([{
+                                                                    omit = false
+                                                                    rule = PToken (getSource "C" 0 0)
+                                                                    binding = None
+                                                                    checker = None
+                                                                }], None, None)))
+                                       
+                                    binding = None
+                                    checker = None
+                                    };
+                                    {
+                                    omit = false
+                                    rule = PToken (getSource "D" 0 0)
+                                    binding = None
+                                    checker = None
+                                    }], None, None)                                                    
+                    binding = None
+                    checker = None
+                }]
+        let expected = defaultDefinition rules
+        preprocessorTest (cp "booleanGrammar#2.yrd") expected
