@@ -65,6 +65,9 @@ let GrammarEqualsWithoutLineNumbers (g1:Grammar.t<Source.t,Source.t>) (g2:Gramma
             srcEquals r1 r2 && srcOptEquals arg1 arg2 && 
                 List.length marg1 = List.length marg2 && List.forall2 ilTreeEqualsWithoutLineNumbers marg1 marg2
         | PLiteral s1, PLiteral s2 -> srcEquals s1 s2
+        | PNegat t1, PNegat t2 -> ilTreeEqualsWithoutLineNumbers t1 t2
+        | PConjuct(left1, right1), PConjuct(left2, right2) -> 
+            ilTreeEqualsWithoutLineNumbers left1 left2 && ilTreeEqualsWithoutLineNumbers right1 right2
         | _ -> false
 
     List.forall2
