@@ -773,3 +773,22 @@ type ``Yard frontend Boolean Grammars tests`` () =
                 }]
         let expected = defaultDefinition rules
         preprocessorTest (cp "booleanGrammar#2.yrd") expected
+
+    [<Test>]
+    member test.``boolean grammar test #3`` () = 
+        let rules =
+            verySimpleRules "s"
+                [{
+                    omit = false                  
+                    rule = PSeq([{
+                                    omit = false
+                                    rule = PSome(PConjuct (POpt (PToken (getSource "A" 0 0)),PConjuct (PMany (PToken (getSource "B" 0 0)),PToken (getSource "C" 0 0))));
+                                    binding = None
+                                    checker = None
+                                }], None, None)
+                                                       
+                    binding = None
+                    checker = None
+                }]
+        let expected = defaultDefinition rules
+        preprocessorTest (cp "booleanGrammar#3.yrd") expected

@@ -295,7 +295,11 @@ call: UIDENT {PToken $1}
 
 tada_rule : SHARPLINE {} | EOF {} 
 
-alts_call : LPAREN alts RPAREN {$2} | call {$1}
+alts_call : LPAREN alts RPAREN {$2} 
+          | call {$1} 
+		  | call PLUS {PSome $1} 
+		  | call STAR {PMany $1} 
+		  | call QUESTION {POpt $1}
 
 negation_alts_call : EXCLAMATION alts_call {PNegat $2} | alts_call {$1}
 
