@@ -71,3 +71,5 @@ Examples/RNGLR/PLSql/MsParser.fs
 Examples/RNGLR/PLSql/epsilons/*.dot
 YaccConstructor/YardFrontend/out
 YaccConstructor/YardFrontend/Parser.fs
+Examples/RNGLR/PLSql/Lexer.fs
+YaccConstructor/RNGLRParser.ErrorRecoveryTest/res.dot
