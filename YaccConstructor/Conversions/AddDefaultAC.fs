@@ -62,6 +62,8 @@ let rec addAcToProduction neededRules ruleBody =
     | PSome p -> PSome(addAcToProduction neededRules p)
     | PMany p -> PMany(addAcToProduction neededRules p)
     | POpt p -> POpt(addAcToProduction neededRules p)
+    | PNegat p -> PNegat(addAcToProduction neededRules p)
+    | PConjuct (left, right) -> PConjuct(addAcToProduction neededRules left, addAcToProduction neededRules right)
     //| PMetaRef(_,_,_) -> failwith "ERROR: PMetaRef unexpected in AddDefaultAC"
     | x -> failwithf "ERROR: %A unexpected in AddDefaultAC" x
 

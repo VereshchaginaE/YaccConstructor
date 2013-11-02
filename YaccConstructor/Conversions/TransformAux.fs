@@ -34,6 +34,8 @@ let rec getTextIL = function
     | PSome(p) -> "(" + getTextIL p + ")*"
     | PMany(p) -> "(" + getTextIL p + ")+"
     | PAlt(l,r) -> "(" + getTextIL l + ")|(" + getTextIL r + ")"
+    | PConjuct(l, r) -> "(" + getTextIL l + ")&(" + getTextIL r + ")"
+    | PNegat(p) -> "!(" + getTextIL p + ")"
     | PMetaRef(s,_,_) -> getText s
     | PSeq(elements, ac, _) ->
         "(" + (elements |> List.map (fun elem -> getTextIL elem.rule) |> String.concat " ") + "){" + 

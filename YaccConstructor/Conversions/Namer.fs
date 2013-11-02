@@ -100,7 +100,10 @@ let initNamer (grammar : Grammar.t<_,_>) =
                 walk e.rule
             )
         | PPerm elems -> elems |> List.iter walk
-
+        | PConjuct (l, r) ->
+            walk l
+            walk r
+        | PNegat n -> walk n
     grammar |> List.iter (fun mod' ->
         add <| getModuleName mod'
         mod'.rules |> List.iter (fun rule ->
@@ -147,6 +150,9 @@ let genNewSource (name : string) (body : t<_,_>) =
         | PToken t -> t
         | PMetaRef (n,_,_) -> n
         | PPerm _ | PRepet _ as x -> failwithf "Unrealized construction: %A" x
+        | PConjuct (l, r) -> getBegin l
+        | PNegat n -> getBegin n
+
     let oldSource = getBegin body
     new Source.t(name, oldSource)
 

@@ -237,5 +237,19 @@ type ``RNGLR parser tests with simple lexer`` () =
             printfn "Result: %A" res
             Assert.AreEqual([5,0], res)
 
+    [<Test>]
+    member test.``Simple conjuction``() =
+        let parser = RNGLR.ParseLongest.buildAst
+        let path = "C:\Users\Александр\recursive-ascent\Tests\YardFrontend\BooleanGrammars"
+
+        match run path parser with
+        | Parser.Error (num, tok, err,_) -> printErr (num, tok, err)
+        | Parser.Success mAst ->
+            RNGLR.ParseLongest.defaultAstToDot mAst "longest.dot"
+            mAst.ChooseLongestMatch()
+            let res = translate RNGLR.ParseLongest.translate mAst
+            printfn "Result: %A" res
+            Assert.AreEqual([5,0], res)
+
 (*[<EntryPoint>]
 (new ``RNGLR parser tests with simple lexer``()).``AST, containing long cycles``()*)

@@ -144,6 +144,10 @@ let checkModuleRules (publicRules : IDictionary<_,_>) (module' : Grammar.Module<
             getUndeclaredRulesCurried rExpr
         | PLiteral _ 
         | PToken _  -> ()
+        | PNegat expr -> getUndeclaredRulesCurried expr
+        | PConjuct (lExpr, rExpr) ->
+            getUndeclaredRulesCurried lExpr
+            getUndeclaredRulesCurried rExpr
 
     module'.rules
     |> List.iter
@@ -193,6 +197,10 @@ let reachableRulesInfo_of_grammar (grammar: Grammar.t<_,_>) =
         | PAlt (lExpr,rExpr) -> 
             getReachableRulesCurried lExpr
             getReachableRulesCurried rExpr
+        | PConjuct (lExpr,rExpr) -> 
+            getReachableRulesCurried lExpr
+            getReachableRulesCurried rExpr
+        | PNegat (expr) -> getReachableRulesCurried expr
         | PLiteral _ 
         | PToken _  -> ()
 
@@ -243,7 +251,8 @@ let sourcesWithoutFileNames (def:Yard.Core.IL.Definition.t<Source.t,Source.t>) =
         | PMany e | PSome e | POpt e -> processBody e
         | PPerm p -> List.collect processBody p
         | PRepet (p,_,_) -> processBody p
-        
+        | PConjuct (l,r) -> processBody l @ processBody r
+        | PNegat expr -> processBody expr
 
     def.grammar |> List.collect (fun m ->
         m.rules |> List.collect (fun r ->

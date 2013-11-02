@@ -43,6 +43,12 @@ let rec eachProduction f productionList =
         | PAlt(left, right) ->
             f <| PAlt(left, right)
             eachProduction f [left; right]
+        | PConjuct(left, right) ->
+            f <| PConjuct(left, right)
+            eachProduction f [left; right]
+        | PNegat x ->
+            f <| PNegat x
+            eachProduction f [x]
         | PMany x ->
             f <| PMany x
             eachProduction f [x]

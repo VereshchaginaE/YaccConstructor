@@ -112,8 +112,8 @@ let private parserSource = new ParserSource<Token> (gotos, reduces, zeroReduces,
 let buildAst : (seq<Token> -> ParseResult<Token>) =
     buildAst<Token> parserSource
 
-let _rnglr_epsilons : Tree<Token>[] = [|null; null; null; null; null; null|]
-let _rnglr_filtered_epsilons : Tree<Token>[] = [|null; null; null; null; null; null|]
+let _rnglr_epsilons : Tree<Token>[] = [|null; null; null; new Tree<_>(null,box (new AST(new Family(5, new Nodes([||])), null)), null); null; null|]
+let _rnglr_filtered_epsilons : Tree<Token>[] = [|null; null; null; new Tree<_>(null,box (new AST(new Family(5, new Nodes([||])), null)), null); null; null|]
 for x in _rnglr_filtered_epsilons do if x <> null then x.ChooseSingleAst()
 let _rnglr_extra_array, _rnglr_rule_, _rnglr_concats = 
   (Array.zeroCreate 0 : array<'_rnglr_type_e1 * '_rnglr_type_e2 * '_rnglr_type_e3 * '_rnglr_type_error * '_rnglr_type_s * '_rnglr_type_yard_start_rule>), 
