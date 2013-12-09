@@ -7,6 +7,7 @@ open FSharp.PowerPack.FsLex.AST
 open FSharp.PowerPack.FsLex.Parser
 open Printf
 open Microsoft.FSharp.Text.Lexing
+open Microsoft.FSharp.Text
 open System
 open System.Collections.Generic
 open System.IO 
@@ -198,7 +199,7 @@ let main() =
 //        cfprintfn os "and %s %s (lexbuf : %s.LexBuffer<_>) = _fslex_%s %s %d lexbuf" ident (String.Join(" ",Array.ofList args)) lexlib ident (String.Join(" ",Array.ofList args)) startNode.Id;
     for ((startNode, actions),(ident,args,_)) in List.zip perRuleData spec.Rules do
         cfprintfn os "(* Rule %s *)" ident;
-        cfprintfn os "let fslex_actions_%s %s _fslex_state lexeme =" ident (String.Join(" ",Array.ofList args));
+        cfprintfn os "let fslex_actions_%s %s _fslex_state lexeme brs =" ident (String.Join(" ",Array.ofList args));
         cfprintfn os "  match _fslex_state with" ;
         actions |> Seq.iteri (fun i (code,pos) -> 
             cfprintfn os "  | %d -> ( " i;

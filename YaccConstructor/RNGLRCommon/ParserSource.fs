@@ -1,22 +1,16 @@
-﻿//  Parser.fs contains type, describing information, written to file as result of generation
-//     and used by Parser and Translator.
+﻿//   Copyright 2013 YaccConstructor Software Foundation
 //
-//  Copyright 2011-2012 Avdyukhin Dmitry
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
 //
-//  This file is part of YaccConctructor.
+//       http://www.apache.org/licenses/LICENSE-2.0
 //
-//  YaccConstructor is free software:you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
 
 namespace Yard.Generators.RNGLR
 
@@ -46,13 +40,6 @@ type ParserSource<'TokenType> (gotos : int[][]
         for j = 0 to length.[i]-1 do
             _rules.[i].[j] <- rules.[rulesStart.[i] + j]
 
-    let getExpectedTokens state = 
-        let mutable expected = []
-        for i = 0 to gotos.[0].GetLength(0)-1 do
-            if gotos.[state].[i] <> 0 || reduces.[state].[i] <> null then
-               expected <- i :: expected
-        expected |> List.rev |> List.toArray
-
     member this.Reduces = reduces
     member this.ZeroReduces = zeroReduces
     member this.Gotos = gotos
@@ -68,4 +55,3 @@ type ParserSource<'TokenType> (gotos : int[][]
     member this.NumToString = numToString
     member this.ErrorIndex = errorIndex
     member this.ErrorRulesExists = errorRulesExists
-    member this.GetExpectedTokens state = getExpectedTokens state

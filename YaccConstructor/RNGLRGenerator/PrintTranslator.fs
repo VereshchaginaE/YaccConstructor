@@ -1,22 +1,16 @@
-﻿//  Parser.fs contains type, describing information, written to file as result of generation
-//     and used by Parser and Translator.
+﻿//   Copyright 2013 YaccConstructor Software Foundation
 //
-//  Copyright 2011-2012 Avdyukhin Dmitry
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
 //
-//  This file is part of YaccConctructor.
+//       http://www.apache.org/licenses/LICENSE-2.0
 //
-//  YaccConstructor is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-//
-//  This program is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-//
-//  You should have received a copy of the GNU General Public License
-//  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
 
 module Yard.Generators.RNGLR.TranslatorPrinter
 
@@ -151,7 +145,10 @@ let printTranslator (grammar : FinalGrammar) (srcGrammar : Rule.t<Source.t,Sourc
         | PRef (name, args) ->
             incr num
             let name = Source.toString name
-            let value = sprintf "((unbox %s.[%d]) : '_rnglr_type_%s) " childrenName !num name
+            let value = 
+                if name <> "error" 
+                then sprintf "((unbox %s.[%d]) : '_rnglr_type_%s) " childrenName !num name
+                else sprintf "((unbox %s.[%d]) : list<ErrorNode>)" childrenName !num
             value + (printArgsCallOpt args)
             |> wordL
         | PToken name -> 
@@ -225,17 +222,17 @@ let printTranslator (grammar : FinalGrammar) (srcGrammar : Rule.t<Source.t,Sourc
 
     let aboveArrayL = List.ofArray >> aboveListL
     let concats =
-        let getConcat i = 
-            let typeName = "'_rnglr_type_" + indexator.indexToNonTerm i
-            let called = printArgsCallList args.[i] ""
-            let args = printArgsDeclare args.[i]
-            let listName = "_rnglr_list"
-            let itemName = "_rnglr_item"
-            wordL ("(fun (" + listName + " : list<_>) -> ")
-            @@-- (wordL "box (" -- args)
-            @@-- (wordL <| listName + " |> List.map (fun " + itemName
-                            + " -> ((unbox " + itemName + ") : " + typeName + ") " + called
-                            + " ) |> List.concat));")
+        let getConcat i =
+                let typeName = "'_rnglr_type_" + indexator.indexToNonTerm i
+                let called = printArgsCallList args.[i] ""
+                let args = printArgsDeclare args.[i]
+                let listName = "_rnglr_list"
+                let itemName = "_rnglr_item"
+                wordL ("(fun (" + listName + " : list<_>) -> ")
+                @@-- (wordL "box (" -- args)
+                @@-- (wordL <| listName + " |> List.map (fun " + itemName
+                                + " -> ((unbox " + itemName + ") : " + typeName + ") " + called
+                                + " ) |> List.concat));")
         [|for i = 0 to args.Length - 1 do 
             yield getConcat i|]
         |> aboveArrayL
@@ -271,11 +268,11 @@ let printTranslator (grammar : FinalGrammar) (srcGrammar : Rule.t<Source.t,Sourc
 
     let funRes =
         let typeName = "'_rnglr_type_" + indexator.indexToNonTerm (grammar.rules.leftSide grammar.startRule)
-        let funHead = wordL ("let translate (args : TranslateArguments<_,_>) (tree : Tree<_>) : " + typeName + " = ")
+        let funHead = wordL ("let translate (args : TranslateArguments<_,_>) (tree : Tree<_>) (dict : _ ) : " + typeName + " = ")
         let body =
             [yield wordL ("unbox (tree.Translate " + ruleName + " " + " leftSide " + concatsName
                             + " (if args.filterEpsilons then " + epsilonNameFiltered + " else " + epsilonName + ")"
-                            + " args.tokenToRange args.zeroPosition args.clearAST) : " + typeName)
+                            + " args.tokenToRange args.zeroPosition args.clearAST dict) : " + typeName)
             ] |> aboveListL
         funHead @@-- body
 
