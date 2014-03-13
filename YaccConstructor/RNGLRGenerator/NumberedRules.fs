@@ -36,6 +36,10 @@ type NumberedRules (ruleList : Rule.t<Source.t,Source.t> list, indexator : Index
             | PToken token -> (*printfn "T %s" <| fst token;*) (indexator.termToIndex token.text)::acc
             | PLiteral lit -> (*printfn "L %s" <| fst lit;*) (indexator.literalToIndex <| transformLiteral lit.text)::acc
             | PSeq (s,_,_) -> List.foldBack (fun x acc -> transformBody acc x.rule) s acc
+            | PNegat x -> transformBody acc x
+            | PConjuct(l,r) -> 
+                transformBody acc l
+                transformBody acc r
             | _ -> failwith "Unexpected construction in grammar"
         rules
         |> Array.map

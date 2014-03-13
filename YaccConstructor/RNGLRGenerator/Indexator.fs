@@ -37,7 +37,11 @@ type Indexator (ruleList : Rule.t<Source.t,Source.t> list, caseSensitive) =
             | PRef _ | PMetaRef _ -> (accTerms, accLiterals)
             | PSeq (s, _, _) ->
                 s |> List.map (fun e -> e.rule)
-                |> List.fold collectTermsAndLits (accTerms, accLiterals)
+                |> List.fold collectTermsAndLits (accTerms, accLiterals) 
+            | PConjuct(x,y) -> 
+                let l = [ x; y ]
+                l |> List.fold collectTermsAndLits (accTerms, accLiterals) 
+            | PNegat x -> x |> collectTermsAndLits (accTerms, accLiterals) 
             | PLiteral lit -> accTerms, (Indexator.transformLiteral caseSensitive lit.text)::accLiterals
             | PToken token -> token.text::accTerms, accLiterals
             | x -> failwithf "Unexpected construction %A in grammar" x

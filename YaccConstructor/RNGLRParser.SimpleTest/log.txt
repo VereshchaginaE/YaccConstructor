@@ -1,1 +1,16 @@
-Constraint NeedAC: applying AddDefaultAC...
+. 
+Epsilon 
+
+rules:
+   0: s = yard_rule_op_1 yard_rule_op_2 yard_rule_op_3 
+   1: yard_start_rule = s 
+   2: yard_rule_op_3 = C 
+   3: yard_rule_op_3 = 
+   4: yard_rule_op_2 = B 
+   5: yard_rule_op_2 = 
+   6: yard_rule_op_1 = A 
+   7: yard_rule_op_1 = 
+Source without filename: parserRange
+Source without filename: error
+<null>. 
+Longest 

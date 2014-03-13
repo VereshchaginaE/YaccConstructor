@@ -60,6 +60,7 @@
     <Compile Include="ReplaceInline.fs" />
     <Compile Include="Linearize.fs" />
     <Compile Include="ToCNF.fs" />
+    <Compile Include="ConvertBooleanGrammar.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.fsproj">

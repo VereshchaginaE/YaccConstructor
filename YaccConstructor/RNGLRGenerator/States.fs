@@ -39,6 +39,7 @@ type KernelInterpreter =
 
     static member inline symbol (grammar : FinalGrammar) kernel =
         let rule = KernelInterpreter.getProd kernel
+        let a = grammar.rules
         let pos = KernelInterpreter.getPos kernel
         if grammar.rules.length rule = pos then grammar.indexator.eofIndex
         else grammar.rules.symbol rule pos

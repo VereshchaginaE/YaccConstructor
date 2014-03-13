@@ -1,0 +1,1 @@
+..\..\..\YaccConstructor\YaccConstructor\bin\Release\YaccConstructor.exe -i %1 -g "RNGLRGenerator -pos int -token int -module RNGLR.ParseTest -translate true -table LR -o test.yrd.fs" 

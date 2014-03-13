@@ -23,6 +23,8 @@ module Yard.Core.Constraints
 
 open Yard.Core.ConstraintsImpl
 
+let ConvertConjuct = ConvertConjuct.convertConjuct
+let ConvertNegat = ConvertNegat.convertNegat
 let singleModule = SingleModule.singleModule
 let noEbnf = NoEbnf.noEbnf
 let noMeta = NoMeta.noMeta

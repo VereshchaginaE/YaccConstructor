@@ -40,8 +40,8 @@ let existsSubProd pred =
                 metas |> List.exists exists
             | PPerm elems -> elems |> List.exists exists
             | PLiteral _ | PToken _ | PRef _ -> false
-            | PConjuct (lExpr, rExpr) -> exists lExpr && exists rExpr
-            | PNegat expr -> not (exists expr)
+            | PConjuct (lExpr, rExpr) -> exists lExpr || exists rExpr
+            | PNegat expr -> exists expr
     exists
 
 let existsProd pred =

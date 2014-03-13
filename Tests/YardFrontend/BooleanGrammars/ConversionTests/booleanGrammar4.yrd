@@ -1,2 +1,2 @@
 [<Start>]
-s: !A B | C
+s: !(A | B)

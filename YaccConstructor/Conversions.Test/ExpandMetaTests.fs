@@ -102,4 +102,3 @@ type ``Conversions expand metarules tests`` () =
 
     [<Test>]    
     member test.``Meta test two calls``()=runMetaTest("meta_two.yrd")
-

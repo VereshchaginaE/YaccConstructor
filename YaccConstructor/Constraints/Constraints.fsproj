@@ -74,6 +74,8 @@
     <Compile Include="NoInnerAlt.fs" />
     <Compile Include="NoBrackets.fs" />
     <Compile Include="NoLiterals.fs" />
+    <Compile Include="ConvertConjuct.fs" />
+    <Compile Include="ConvertNegat.fs" />
     <Compile Include="Constraints.fs" />
   </ItemGroup>
   <ItemGroup>
