@@ -35,6 +35,7 @@ type Indexator (ruleList : Rule.t<Source.t,Source.t> list, caseSensitive) =
                 |> List.fold collectTermsAndLits (accTerms, accLiterals)
             | PLiteral lit -> accTerms, (Indexator.transformLiteral caseSensitive lit.text)::accLiterals
             | PToken token -> token.text::accTerms, accLiterals
+            | PMany x -> collectTermsAndLits (accTerms, accLiterals) x
             | x -> failwithf "Unexpected construction %A in grammar" x
                     
         rules

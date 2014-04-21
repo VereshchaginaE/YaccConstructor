@@ -20,6 +20,7 @@ open Constraints
 open Yard.Generators.RNGLR
 open InitialConvert
 open Yard.Generators.RNGLR.FinalGrammar
+open Yard.Generators.RNGLR.FinalGrammarDFA
 open States
 open Printer
 open TranslatorPrinter
@@ -28,7 +29,7 @@ open Option
 type RNGLR() = 
     inherit Generator()
         override this.Name = "RNGLRGenerator"
-        override this.Constraints = [|noEbnf; noMeta; noInnerAlt; (*noLiterals;*) noInnerAlt; noBrackets; needAC; singleModule|]
+        override this.Constraints = [|(*noEbnf;*) noMeta; noInnerAlt; (*noLiterals;*) noInnerAlt; noBrackets; needAC; singleModule|]
         override this.Generate (definition, args) =
             let start = System.DateTime.Now
             let args = args.Split([|' ';'\t';'\n';'\r'|]) |> Array.filter ((<>) "")
@@ -98,9 +99,10 @@ type RNGLR() =
                 // In other cases causes error
                 | _ -> failwithf "Unknown option %A" opt
             let newDefinition = initialConvert definition
-            let grammar = new FinalGrammar(newDefinition.grammar.[0].rules, caseSensitive)
+            //let grammar = new FinalGrammar(newDefinition.grammar.[0].rules, caseSensitive)
+            let grammar = new FinalGrammarDFA(newDefinition.grammar.[0].rules, caseSensitive)
 
-            let printRules () =
+            (*let printRules () =
                 let printSymbol (symbol : int) =
                     if symbol < grammar.indexator.nonTermCount then
                         grammar.indexator.indexToNonTerm symbol
@@ -129,8 +131,8 @@ type RNGLR() =
                             grammar.indexator.indexToNonTerm (fun _ -> 0) grammar.rules.leftSideArr
                             (System.IO.Path.Combine (printInfiniteEpsilonPath, nonTerm + ".dot"))
                 grammar.epsilonTrees |> Array.iter (fun t -> if t <> null then t.EliminateCycles())
-            let statesInterpreter = buildStates table grammar
-            let tables = new Tables(grammar, statesInterpreter)
+            let statesInterpreter = buildStates table grammar*)
+            (*let tables = new Tables(grammar, statesInterpreter)
             use out = new System.IO.StreamWriter (output)
             let res = new System.Text.StringBuilder()
             let dummyPos = char 0
@@ -202,7 +204,7 @@ type RNGLR() =
                 | Scala -> res + "\n}"
             out.WriteLine res
             out.Close()
-            eprintfn "Generation time: %A" <| System.DateTime.Now - start
+            eprintfn "Generation time: %A" <| System.DateTime.Now - start*)
             //(new YardPrinter()).Generate newDefinition
             box ()
         override this.Generate definition = this.Generate (definition, "")
