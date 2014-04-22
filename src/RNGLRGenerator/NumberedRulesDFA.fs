@@ -15,58 +15,45 @@ type NumberedRulesDFA (ruleList : Rule.t<Source.t,Source.t> list, indexator : In
     let left = rules |> Array.map (fun x -> x.name.text |> indexator.nonTermToIndex)
     let right =
         let bodyToDFA a_firstStateNumber body = 
-            
-            let rec regExToDFA (firstState : Vertex<_,_>) lastState (stateToVertex : ResizeArray<Vertex<_,_>>) = function
+            let nextStateNumber, vertexCount =
+                let number = ref a_firstStateNumber
+                (fun () -> incr number; !number),
+                (fun () -> !number + 1 - a_firstStateNumber)
+            let rec regExToDFA (firstState : Vertex<_,_>)  (stateToVertex : ResizeArray<Vertex<_,_>>)  = function
                 |PAlt (x,y) ->
-                    let lastSt = regExToDFA firstState lastState stateToVertex x
-                    regExToDFA firstState lastState stateToVertex y
+                    let lastStateX : Vertex<_,_> = regExToDFA firstState stateToVertex x 
+                    let lastStateY = regExToDFA firstState stateToVertex y
+                    let lastState = new Vertex<_,_>(nextStateNumber())
+                    stateToVertex.Add(lastState)
+                    lastStateX.addEdge(new Edge<_,_>(lastState, indexator.epsilonIndex))
+                    lastStateY.addEdge(new Edge<_,_>(lastState, indexator.epsilonIndex))
+                    lastState
                 |PSeq (s, _, _) ->
-                    let firstSt = ref firstState
-                    let seqToDFA = function
-                        | x::_::xs ->
-                            firstSt := regExToDFA !firstSt None stateToVertex x
-                            !firstSt
-                        | x::[] ->
-                            regExToDFA !firstSt lastState stateToVertex x
-                        | x -> failwithf "Unexpected construction %A" x
-                    s |> List.map (fun (x : elem<_,_>) -> x.rule) |> seqToDFA
-                |PToken token -> 
-                    let lastSt = 
-                        match lastState with
-                        | Some x ->
-                            x
-                        | None -> 
-                            let x = new Vertex<_,_>(firstState.label + 1)
-                            stateToVertex.Add(x)
-                            x
-                    firstState.addEdge(new Edge<_,_>(lastSt, indexator.termToIndex token.text))
-                    lastSt
-                |PRef (nTerm, _) ->
-                    let lastSt = 
-                        match lastState with
-                        | Some x ->
-                            x
-                        | None -> 
-                            let x = new Vertex<_,_>(firstState.label + 1)
-                            stateToVertex.Add(x)
-                            x
-                    firstState.addEdge(new Edge<_,_>(lastSt, indexator.nonTermToIndex nTerm.text))
-                    lastSt
+                    match s with
+                    | [] ->
+                        let lastState = new Vertex<_,_>(nextStateNumber())
+                        firstState.addEdge(new Edge<_,_>(lastState, indexator.epsilonIndex))
+                        lastState
+                    | _ ->                    
+                        let seqToDFA fstState = regExToDFA fstState stateToVertex 
+                        s |> List.map (fun (x : elem<_,_>) -> x.rule) |> List.fold seqToDFA firstState
+                |PToken _ | PLiteral _ | PRef _ as x -> 
+                    let index =
+                        match x with
+                        | PToken token -> indexator.termToIndex token.text
+                        | PLiteral lit -> indexator.literalToIndex <| transformLiteral lit.text
+                        | PRef (nTerm, _) -> indexator.nonTermToIndex nTerm.text
+                        | _ -> failwithf "Unexpected construction"
+                    let lastState = new Vertex<_,_>(nextStateNumber())
+                    stateToVertex.Add(lastState)
+                    firstState.addEdge(new Edge<_,_>(lastState, index))
+                    lastState
                 |PMany x -> 
-                    regExToDFA firstState (Some firstState) stateToVertex x
-                    
+                    let lastState = regExToDFA firstState stateToVertex x
+                    lastState.addEdge(new Edge<_,_>(firstState, indexator.epsilonIndex))
+                    firstState
                 //|PMetaRef
-                |PLiteral lit -> 
-                    let lastSt = 
-                        match lastState with
-                        | Some x ->
-                            x
-                        | None -> 
-                            let x = new Vertex<_,_>(firstState.label + 1)
-                            stateToVertex.Add(x)
-                            x
-                    firstState.addEdge(new Edge<_,_>(lastSt, indexator.literalToIndex <| transformLiteral lit.text))
-                    lastSt
+                  
                 //|PRepet
                 //|PPerm
                 //|PSome
@@ -75,14 +62,14 @@ type NumberedRulesDFA (ruleList : Rule.t<Source.t,Source.t> list, indexator : In
             
             let firstState = new Vertex<int, int>(a_firstStateNumber) 
             let stateToVertex = new ResizeArray<Vertex<_,_>>()
-            regExToDFA firstState None stateToVertex body |> ignore
-            let prod : DFAProduction.t = {firstStateNumber = a_firstStateNumber; numberOfStates = stateToVertex.Count; startState = firstState; stateToVertex = stateToVertex |> Seq.toArray}
+            regExToDFA firstState stateToVertex body|> ignore
+            let prod : DFAProduction.t = {firstStateNumber = a_firstStateNumber; numberOfStates = vertexCount(); startState = firstState; stateToVertex = stateToVertex |> Seq.toArray}
             prod
 
         let firstState = ref 0
         ruleList
-        |> List.fold
-            (fun (res : DFARule.t<_,_> list) rule->
+        |> List.map
+            (fun rule->
                 let dfaRule : DFARule.t<_,_> =
                     {
                         name = rule.name;
@@ -93,9 +80,8 @@ type NumberedRulesDFA (ruleList : Rule.t<Source.t,Source.t> list, indexator : In
                         metaArgs = rule.metaArgs
                     }
                 firstState := !firstState + dfaRule.body.numberOfStates
-                dfaRule::res
+                dfaRule
             )
-            []
         |> Array.ofList
 
     let rulesWithLeft =

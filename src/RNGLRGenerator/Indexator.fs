@@ -60,6 +60,8 @@ type Indexator (ruleList : Rule.t<Source.t,Source.t> list, caseSensitive) =
     
     let _errorIndex = let (x,_,_) = nonTermsConnect in x "error"
 
+    let _epsilonIndex = literalsShift + (let (_,_,x) = literalsConnect in x)
+
     let _getLiteralName i =
         let (lit:string) = Indexator.sub literalsShift (Indexator.snd literalsConnect) i
         let replacementDict =
@@ -115,7 +117,8 @@ type Indexator (ruleList : Rule.t<Source.t,Source.t> list, caseSensitive) =
     member this.getLiteralName i = _getLiteralName i
     member this.literalsStart = literalsShift
     member this.literalsEnd = literalsShift + this.literalsCount - 1
-
+    
     member this.fullCount = (Indexator.trd literalsConnect) + (Indexator.trd termsConnect) + (Indexator.trd nonTermsConnect)
     member this.eofIndex = _eofIndex
     member this.errorIndex = _errorIndex
+    member this.epsilonIndex = _epsilonIndex
