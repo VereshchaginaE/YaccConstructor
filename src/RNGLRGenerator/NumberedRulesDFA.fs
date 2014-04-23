@@ -16,27 +16,43 @@ type NumberedRulesDFA (ruleList : Rule.t<Source.t,Source.t> list, indexator : In
     let right =
         let bodyToDFA a_firstStateNumber body = 
             let nextStateNumber, vertexCount =
-                let number = ref a_firstStateNumber
+                let number = ref (a_firstStateNumber-1)
                 (fun () -> incr number; !number),
                 (fun () -> !number + 1 - a_firstStateNumber)
+            let nextStateVertex (stateToVertex : ResizeArray<_>) = 
+                let nextVertex = new Vertex<_,_>(nextStateNumber())
+                stateToVertex.Add(nextVertex)
+                nextVertex
+
             let rec regExToDFA (firstState : Vertex<_,_>)  (stateToVertex : ResizeArray<Vertex<_,_>>)  = function
                 |PAlt (x,y) ->
-                    let lastStateX : Vertex<_,_> = regExToDFA firstState stateToVertex x 
-                    let lastStateY = regExToDFA firstState stateToVertex y
-                    let lastState = new Vertex<_,_>(nextStateNumber())
-                    stateToVertex.Add(lastState)
+                    let firstStateX = nextStateVertex stateToVertex
+                    firstState.addEdge(new Edge<_,_>(firstStateX, indexator.epsilonIndex))
+                    let lastStateX : Vertex<_,_> = regExToDFA firstStateX stateToVertex x 
+                    let firstStateY = nextStateVertex stateToVertex
+                    firstState.addEdge(new Edge<_,_>(firstStateY, indexator.epsilonIndex))
+                    let lastStateY = regExToDFA firstStateY stateToVertex y
+                    let lastState = nextStateVertex stateToVertex
                     lastStateX.addEdge(new Edge<_,_>(lastState, indexator.epsilonIndex))
                     lastStateY.addEdge(new Edge<_,_>(lastState, indexator.epsilonIndex))
                     lastState
                 |PSeq (s, _, _) ->
                     match s with
                     | [] ->
-                        let lastState = new Vertex<_,_>(nextStateNumber())
+                        let lastState = nextStateVertex stateToVertex
                         firstState.addEdge(new Edge<_,_>(lastState, indexator.epsilonIndex))
                         lastState
                     | _ ->                    
-                        let seqToDFA fstState = regExToDFA fstState stateToVertex 
-                        s |> List.map (fun (x : elem<_,_>) -> x.rule) |> List.fold seqToDFA firstState
+                        let rec seqToDFA fstState = function
+                        | [] -> fstState
+                        | x :: [] -> regExToDFA fstState stateToVertex x
+                        | x :: xs -> 
+                            let lastState = regExToDFA fstState stateToVertex x
+                            let lstState = nextStateVertex stateToVertex
+                            lastState.addEdge(new Edge<_,_>(lstState, indexator.epsilonIndex))
+                            seqToDFA lstState xs
+                         
+                        s |> List.map (fun (x : elem<_,_>) -> x.rule) |> seqToDFA firstState
                 |PToken _ | PLiteral _ | PRef _ as x -> 
                     let index =
                         match x with
@@ -44,14 +60,17 @@ type NumberedRulesDFA (ruleList : Rule.t<Source.t,Source.t> list, indexator : In
                         | PLiteral lit -> indexator.literalToIndex <| transformLiteral lit.text
                         | PRef (nTerm, _) -> indexator.nonTermToIndex nTerm.text
                         | _ -> failwithf "Unexpected construction"
-                    let lastState = new Vertex<_,_>(nextStateNumber())
-                    stateToVertex.Add(lastState)
+                    let lastState = nextStateVertex stateToVertex
                     firstState.addEdge(new Edge<_,_>(lastState, index))
                     lastState
                 |PMany x -> 
-                    let lastState = regExToDFA firstState stateToVertex x
-                    lastState.addEdge(new Edge<_,_>(firstState, indexator.epsilonIndex))
-                    firstState
+                    let fstState = nextStateVertex stateToVertex
+                    firstState.addEdge(new Edge<_,_>(fstState, indexator.epsilonIndex))
+                    let lstState = regExToDFA fstState stateToVertex x
+                    lstState.addEdge(new Edge<_,_>(fstState, indexator.epsilonIndex))
+                    let lastState = nextStateVertex stateToVertex
+                    lstState.addEdge(new Edge<_,_>(lastState, indexator.epsilonIndex))
+                    lastState
                 //|PMetaRef
                   
                 //|PRepet
@@ -59,9 +78,9 @@ type NumberedRulesDFA (ruleList : Rule.t<Source.t,Source.t> list, indexator : In
                 //|PSome
                 //|POpt
                 | x -> failwithf "Unexpected construction %A" x
-            
-            let firstState = new Vertex<int, int>(a_firstStateNumber) 
+             
             let stateToVertex = new ResizeArray<Vertex<_,_>>()
+            let firstState = nextStateVertex stateToVertex
             regExToDFA firstState stateToVertex body|> ignore
             let prod : DFAProduction.t = {firstStateNumber = a_firstStateNumber; numberOfStates = vertexCount(); startState = firstState; stateToVertex = stateToVertex |> Seq.toArray}
             prod
