@@ -39,6 +39,8 @@
     <Compile Include="FinalGrammar.fs" />
     <Compile Include="GrammarWithDFARightSide.fs" />
     <Compile Include="NumberedRulesDFA.fs" />
+    <Compile Include="EpsilonNFA.fs" />
+    <Compile Include="SymbolSetsNFA.fs" />
     <Compile Include="FinalGrammarDFA.fs" />
     <Compile Include="States.fs" />
     <Compile Include="Tables.fs" />

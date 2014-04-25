@@ -123,8 +123,10 @@ type NumberedRulesDFA (ruleList : Rule.t<Source.t,Source.t> list, indexator : In
     member this.startSymbol = left.[start]
     member this.leftSide num = left.[num]
     member this.leftSideArr = left
-    member this.rightSide num = right.[num]
+    member this.rightSide num = right.[num].body
     member this.numberOfStates num = right.[num].body.numberOfStates
-    member this.symbol rule pos = right.[rule].body.stateToVertex.[pos]
+    member this.state rule pos = right.[rule].body.stateToVertex.[pos]
+    member this.relativeStateNumber rule absNum = absNum - right.[rule].body.firstStateNumber
+    member this.absStateNumber rule relativeNum = right.[rule].body.firstStateNumber + relativeNum
     member this.rulesWithLeftSide symbol = rulesWithLeft.[symbol]
     //member this.errorRulesExists = errRulesExists
