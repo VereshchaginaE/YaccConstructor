@@ -37,7 +37,7 @@ let firstSetNFA (rules : NumberedRulesDFA) (indexator : Indexator) (canInferEpsi
                             if (x.label = u) then true
                             elif (canInferEpsilon.[x.label] && state.label < x.dest.label) then checkOutSymbols x.dest || checkEdges xs
                             else checkEdges xs
-                    if state.label >= prod.numberOfStates then false
+                    if (state.label - prod.firstStateNumber) >= prod.numberOfStates then false
                     else state.outEdges |> List.ofSeq |> checkEdges
                 checkOutSymbols prod.startState
                     
@@ -52,6 +52,9 @@ let firstSetNFA (rules : NumberedRulesDFA) (indexator : Indexator) (canInferEpsi
     calc indexator.errorIndex
     for term = indexator.nonTermCount to indexator.fullCount-1 do
         calc term
+    for nonTerm = 1 to indexator.nonTermCount do
+        if(canInferEpsilon.[nonTerm]) then
+            result.[nonTerm] <- result.[nonTerm].Add indexator.epsilonIndex
     result
 
 (*let followSetNFA (rules : NumberedRulesDFA) (indexator : Indexator) (canInferEpsilon : bool[]) (firstSet : Set<int>[]) =

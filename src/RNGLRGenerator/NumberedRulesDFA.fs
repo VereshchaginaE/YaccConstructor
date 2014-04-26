@@ -70,13 +70,27 @@ type NumberedRulesDFA (ruleList : Rule.t<Source.t,Source.t> list, indexator : In
                     lstState.addEdge(new Edge<_,_>(fstState, indexator.epsilonIndex))
                     let lastState = nextStateVertex stateToVertex
                     lstState.addEdge(new Edge<_,_>(lastState, indexator.epsilonIndex))
+                    firstState.addEdge(new Edge<_,_>(lastState, indexator.epsilonIndex))
+                    lastState
+                |PSome x ->
+                    let fstState = nextStateVertex stateToVertex
+                    firstState.addEdge(new Edge<_,_>(fstState, indexator.epsilonIndex))
+                    let lstState = regExToDFA fstState stateToVertex x
+                    lstState.addEdge(new Edge<_,_>(fstState, indexator.epsilonIndex))
+                    let lastState = nextStateVertex stateToVertex
+                    lstState.addEdge(new Edge<_,_>(lastState, indexator.epsilonIndex))
+                    lastState
+                |POpt x ->
+                    let fstState = nextStateVertex stateToVertex
+                    firstState.addEdge(new Edge<_,_>(fstState, indexator.epsilonIndex))
+                    let lstState = regExToDFA fstState stateToVertex x
+                    let lastState = nextStateVertex stateToVertex
+                    lstState.addEdge(new Edge<_,_>(lastState, indexator.epsilonIndex))
+                    firstState.addEdge(new Edge<_,_>(lastState, indexator.epsilonIndex))
                     lastState
                 //|PMetaRef
-                  
                 //|PRepet
                 //|PPerm
-                //|PSome
-                //|POpt
                 | x -> failwithf "Unexpected construction %A" x
              
             let stateToVertex = new ResizeArray<Vertex<_,_>>()

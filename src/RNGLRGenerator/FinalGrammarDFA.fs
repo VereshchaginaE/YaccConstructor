@@ -2,17 +2,17 @@
 
 open Yard.Core.IL
 open Yard.Generators.RNGLR
-open Yard.Generators.RNGLR.Epsilon
-open Yard.Generators.RNGLR.SymbolSets
+open Yard.Generators.RNGLR.EpsilonNFA
+open Yard.Generators.RNGLR.SymbolSetsNFA
 open Yard.Generators.RNGLR.DFA
 
 
 type FinalGrammarDFA(ruleList : Rule.t<Source.t,Source.t> list, caseSensitive) =
     let _indexator = new Indexator(ruleList, caseSensitive)
-    let _dfaRules = new NumberedRulesDFA (ruleList, _indexator, caseSensitive)
-    //let _canInferEpsilon = canInferEpsilon _numberedRules _indexator // возможен бесконечный вывод
-    //let _firstSet = firstSet _numberedRules _indexator _canInferEpsilon //
-    //let _followSet = followSet _numberedRules _indexator _canInferEpsilon _firstSet
+    let _nfaRules = new NumberedRulesDFA (ruleList, _indexator, caseSensitive)
+    let _canInferEpsilon = canInferEpsilonNFA _nfaRules _indexator // возможен бесконечный вывод
+    let _firstSet = firstSetNFA _nfaRules _indexator _canInferEpsilon //
+    let _followSet = followSetNFA _nfaRules _indexator _canInferEpsilon _firstSet
     //let _epsilonCyclicNonTerms = getEpsilonCyclicNonTerms _numberedRules _indexator _canInferEpsilon // нетермиалы
     //let _epsilonTrees = epsilonTrees _numberedRules _indexator _canInferEpsilon // написать Дмитрию Авдюхину. 
     //let _epsilonTailStart = epsilonTailStart _numberedRules _canInferEpsilon //  --//-- специальные вещи для интерпретирования
@@ -20,7 +20,7 @@ type FinalGrammarDFA(ruleList : Rule.t<Source.t,Source.t> list, caseSensitive) =
     //let _errorRulesExists = _numberedRules.errorRulesExists // проверка на правила с ошибками (error recovery)
 
     member this.indexator = _indexator
-    member this.rules = _dfaRules
+    member this.rules = _nfaRules
     //member this.EpsilonCyclicNonTerms = _epsilonCyclicNonTerms
     //member this.canInferEpsilon = _canInferEpsilon
     //member this.firstSet = _firstSet
