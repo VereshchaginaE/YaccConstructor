@@ -143,15 +143,6 @@ type NumberedRulesDFA (ruleList : Rule.t<Source.t,Source.t> list, indexator : In
                 nfa.stateToVertex.[j].outEdges |> List.ofSeq |> getSymbol 
         result
     
-    let _usefulStates = 
-        let result : Set<int>[] = Array.create rules.Length Set.empty
-        for i in 0..rules.Length-1 do
-            for j in 0..right.[i].body.numberOfStates-1 do
-                let (symbol, _) = symbolAndNextPos.[i].[j]
-                if symbol <> indexator.epsilonIndex then result.[i] <- result.[i].Add j
-            result.[i] <- result.[i].Add (right.[i].body.numberOfStates - 1)
-        result
-
     member this.rulesCount = rules.Length
     member this.startRule = start
     member this.startSymbol = left.[start]
@@ -160,7 +151,6 @@ type NumberedRulesDFA (ruleList : Rule.t<Source.t,Source.t> list, indexator : In
     member this.rightSide num = right.[num].body
     member this.numberOfStates num = right.[num].body.numberOfStates
     member this.state rule pos = right.[rule].body.stateToVertex.[pos]
-    member this.usefulStates rule = _usefulStates.[rule]
     member this.symbol rule pos = 
         let (symbol, _) = symbolAndNextPos.[rule].[pos]
         symbol

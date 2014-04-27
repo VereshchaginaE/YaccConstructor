@@ -21,14 +21,29 @@ let epsilonReachable (rules : NumberedRulesDFA) (indexator : Indexator) =
             if not was.[j] then getEpsilonReachable (rules.state i j)
     result
 
-let nextPositions (rules : NumberedRulesDFA) (indexator : Indexator) (epsilonReachable : Set<int>[][]) =
+let usefulStates (rules : NumberedRulesDFA) (indexator : Indexator) = 
+        let result : Set<int>[] = Array.create rules.rulesCount Set.empty
+        for i in 0..rules.rulesCount-1 do
+            for j = 0 to (rules.rightSide i).numberOfStates - 1 do
+                let symbol = rules.symbol i j
+                if symbol <> indexator.epsilonIndex then result.[i] <- result.[i].Add j
+            result.[i] <- result.[i].Add ((rules.rightSide i).numberOfStates - 1) //last state
+        result
+
+let startPositions (rules : NumberedRulesDFA) (epsilonReachable : Set<int>[][]) (usefulStates : Set<int>[]) =
+    let result : Set<int>[] = Array.create rules.rulesCount Set.empty
+    for i in 0..rules.rulesCount-1 do
+        result.[i] <- Set.union epsilonReachable.[i].[0] usefulStates.[i]
+    result
+
+let nextPositions (rules : NumberedRulesDFA) (indexator : Indexator) (epsilonReachable : Set<int>[][]) (usefulStates : Set<int>[]) =
     let result : Set<int>[][] = Array.zeroCreate rules.rulesCount
     for i in 0..rules.rulesCount-1 do
         result.[i] <- Array.create (rules.numberOfStates i) Set.empty
         for j in 0..rules.numberOfStates i - 1 do
             let (symbol, nextPos) = (rules.symbol i j, rules.nextPos i j)
             if symbol <> indexator.epsilonIndex then
-                result.[i].[j] <- Set.intersect (rules.usefulStates i) epsilonReachable.[i].[nextPos]
+                result.[i].[j] <- Set.intersect (usefulStates.[i]) epsilonReachable.[i].[nextPos]
             else
-                result.[i].[j] <- Set.intersect (rules.usefulStates i) epsilonReachable.[i].[j]
+                result.[i].[j] <- Set.intersect (usefulStates.[i]) epsilonReachable.[i].[j]
     result

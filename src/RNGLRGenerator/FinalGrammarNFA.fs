@@ -5,6 +5,7 @@ open Yard.Generators.RNGLR
 open Yard.Generators.RNGLR.EpsilonNFA
 open Yard.Generators.RNGLR.SymbolSetsNFA
 open Yard.Generators.RNGLR.DFA
+open Yard.Generators.RNGLR.StateSets
 
 
 type FinalGrammarNFA(ruleList : Rule.t<Source.t,Source.t> list, caseSensitive) =
@@ -13,6 +14,10 @@ type FinalGrammarNFA(ruleList : Rule.t<Source.t,Source.t> list, caseSensitive) =
     let _canInferEpsilon = canInferEpsilonNFA _nfaRules _indexator // возможен бесконечный вывод
     let _firstSet = firstSetNFA _nfaRules _indexator _canInferEpsilon //
     let _followSet = followSetNFA _nfaRules _indexator _canInferEpsilon _firstSet
+    let _epsilonReachable = epsilonReachable _nfaRules _indexator
+    let _usefulStates = usefulStates _nfaRules _indexator
+    let _startPositions = startPositions _nfaRules _epsilonReachable _usefulStates
+    let _nextPositions = nextPositions _nfaRules _indexator _epsilonReachable _usefulStates
     //let _epsilonCyclicNonTerms = getEpsilonCyclicNonTerms _numberedRules _indexator _canInferEpsilon // нетермиалы
     //let _epsilonTrees = epsilonTrees _numberedRules _indexator _canInferEpsilon // написать Дмитрию Авдюхину. 
     //let _epsilonTailStart = epsilonTailStart _numberedRules _canInferEpsilon //  --//-- специальные вещи для интерпретирования
@@ -25,6 +30,10 @@ type FinalGrammarNFA(ruleList : Rule.t<Source.t,Source.t> list, caseSensitive) =
     member this.canInferEpsilon = _canInferEpsilon
     member this.firstSet = _firstSet
     member this.followSet = _followSet
+    member this.epsilonReachable = _epsilonReachable
+    member this.usefulStates = _usefulStates
+    member this.startPositions = _startPositions
+    member this.nextPositions = _nextPositions
     //member this.epsilonTrees = _epsilonTrees
     //member this.epsilonTailStart = _epsilonTailStart
     member this.startRule = _nfaRules.startRule
