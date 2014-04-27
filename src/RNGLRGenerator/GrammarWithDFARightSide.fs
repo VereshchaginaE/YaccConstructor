@@ -7,7 +7,6 @@ module DFAProduction =
   
     type t = {
     
-        firstStateNumber : int
         numberOfStates : int
         startState : Vertex<int,int>
         stateToVertex : Vertex<int, int>[]

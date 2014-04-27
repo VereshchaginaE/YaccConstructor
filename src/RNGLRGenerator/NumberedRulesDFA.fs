@@ -14,11 +14,11 @@ type NumberedRulesDFA (ruleList : Rule.t<Source.t,Source.t> list, indexator : In
         |> Array.findIndex (fun rule -> rule.isStart)
     let left = rules |> Array.map (fun x -> x.name.text |> indexator.nonTermToIndex)
     let right =
-        let bodyToDFA a_firstStateNumber body = 
+        let bodyToDFA body = 
             let nextStateNumber, vertexCount =
-                let number = ref (a_firstStateNumber-1)
+                let number = ref -1
                 (fun () -> incr number; !number),
-                (fun () -> !number + 1 - a_firstStateNumber)
+                (fun () -> !number)
             let nextStateVertex (stateToVertex : ResizeArray<_>) = 
                 let nextVertex = new Vertex<_,_>(nextStateNumber())
                 stateToVertex.Add(nextVertex)
@@ -96,10 +96,9 @@ type NumberedRulesDFA (ruleList : Rule.t<Source.t,Source.t> list, indexator : In
             let stateToVertex = new ResizeArray<Vertex<_,_>>()
             let firstState = nextStateVertex stateToVertex
             regExToDFA firstState stateToVertex body|> ignore
-            let prod : DFAProduction.t = {firstStateNumber = a_firstStateNumber; numberOfStates = vertexCount(); startState = firstState; stateToVertex = stateToVertex |> Seq.toArray}
+            let prod : DFAProduction.t = {numberOfStates = vertexCount(); startState = firstState; stateToVertex = stateToVertex |> Seq.toArray}
             prod
 
-        let firstState = ref 0
         ruleList
         |> List.map
             (fun rule->
@@ -107,12 +106,11 @@ type NumberedRulesDFA (ruleList : Rule.t<Source.t,Source.t> list, indexator : In
                     {
                         name = rule.name;
                         args = rule.args;
-                        body = bodyToDFA !firstState rule.body;
+                        body = bodyToDFA rule.body;
                         isStart = rule.isStart;
                         isPublic = rule.isPublic;
                         metaArgs = rule.metaArgs
                     }
-                firstState := !firstState + dfaRule.body.numberOfStates
                 dfaRule
             )
         |> Array.ofList
@@ -132,6 +130,28 @@ type NumberedRulesDFA (ruleList : Rule.t<Source.t,Source.t> list, indexator : In
                 res := true
         !res*)
 
+    let symbolAndNextPos =
+        let result : (int * int) [][] = Array.zeroCreate rules.Length
+        for i in 0..rules.Length-1 do
+            let nfa = right.[i].body
+            result.[i] <- Array.create nfa.numberOfStates (indexator.epsilonIndex, 0)
+            for j in 0..nfa.numberOfStates-1 do
+                let rec getSymbol = function
+                |[] -> ()
+                |(x : Edge<_,_>)::xs -> 
+                    if x.label <> indexator.epsilonIndex then result.[i].[j] <- (x.label, x.dest.label) else getSymbol xs
+                nfa.stateToVertex.[j].outEdges |> List.ofSeq |> getSymbol 
+        result
+    
+    let _usefulStates = 
+        let result : Set<int>[] = Array.create rules.Length Set.empty
+        for i in 0..rules.Length-1 do
+            for j in 0..right.[i].body.numberOfStates-1 do
+                let (symbol, _) = symbolAndNextPos.[i].[j]
+                if symbol <> indexator.epsilonIndex then result.[i] <- result.[i].Add j
+            result.[i] <- result.[i].Add (right.[i].body.numberOfStates - 1)
+        result
+
     member this.rulesCount = rules.Length
     member this.startRule = start
     member this.startSymbol = left.[start]
@@ -140,7 +160,12 @@ type NumberedRulesDFA (ruleList : Rule.t<Source.t,Source.t> list, indexator : In
     member this.rightSide num = right.[num].body
     member this.numberOfStates num = right.[num].body.numberOfStates
     member this.state rule pos = right.[rule].body.stateToVertex.[pos]
-    member this.relativeStateNumber rule absNum = absNum - right.[rule].body.firstStateNumber
-    member this.absStateNumber rule relativeNum = right.[rule].body.firstStateNumber + relativeNum
+    member this.usefulStates rule = _usefulStates.[rule]
+    member this.symbol rule pos = 
+        let (symbol, _) = symbolAndNextPos.[rule].[pos]
+        symbol
+    member this.nextPos rule pos = 
+        let (_, pos) = symbolAndNextPos.[rule].[pos]
+        pos
     member this.rulesWithLeftSide symbol = rulesWithLeft.[symbol]
     //member this.errorRulesExists = errRulesExists

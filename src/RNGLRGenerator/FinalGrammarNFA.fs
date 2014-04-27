@@ -1,4 +1,4 @@
-﻿namespace Yard.Generators.RNGLR.FinalGrammarDFA
+﻿namespace Yard.Generators.RNGLR.FinalGrammarNFA
 
 open Yard.Core.IL
 open Yard.Generators.RNGLR
@@ -7,7 +7,7 @@ open Yard.Generators.RNGLR.SymbolSetsNFA
 open Yard.Generators.RNGLR.DFA
 
 
-type FinalGrammarDFA(ruleList : Rule.t<Source.t,Source.t> list, caseSensitive) =
+type FinalGrammarNFA(ruleList : Rule.t<Source.t,Source.t> list, caseSensitive) =
     let _indexator = new Indexator(ruleList, caseSensitive)
     let _nfaRules = new NumberedRulesDFA (ruleList, _indexator, caseSensitive)
     let _canInferEpsilon = canInferEpsilonNFA _nfaRules _indexator // возможен бесконечный вывод
@@ -22,11 +22,11 @@ type FinalGrammarDFA(ruleList : Rule.t<Source.t,Source.t> list, caseSensitive) =
     member this.indexator = _indexator
     member this.rules = _nfaRules
     //member this.EpsilonCyclicNonTerms = _epsilonCyclicNonTerms
-    //member this.canInferEpsilon = _canInferEpsilon
-    //member this.firstSet = _firstSet
-    //member this.followSet = _followSet
+    member this.canInferEpsilon = _canInferEpsilon
+    member this.firstSet = _firstSet
+    member this.followSet = _followSet
     //member this.epsilonTrees = _epsilonTrees
     //member this.epsilonTailStart = _epsilonTailStart
-    //member this.startRule = _numberedRules.startRule
+    member this.startRule = _nfaRules.startRule
     //member this.errorIndex = _errorIndex
     //member this.errorRulesExists = _errorRulesExists

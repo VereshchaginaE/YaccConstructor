@@ -41,8 +41,10 @@
     <Compile Include="NumberedRulesDFA.fs" />
     <Compile Include="EpsilonNFA.fs" />
     <Compile Include="SymbolSetsNFA.fs" />
-    <Compile Include="FinalGrammarDFA.fs" />
+    <Compile Include="StateSets.fs" />
+    <Compile Include="FinalGrammarNFA.fs" />
     <Compile Include="States.fs" />
+    <Compile Include="StatesEBNF.fs" />
     <Compile Include="Tables.fs" />
     <Compile Include="PrintTables.fs" />
     <Compile Include="PrintTranslator.fs" />

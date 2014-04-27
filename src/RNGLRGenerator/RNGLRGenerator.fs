@@ -20,7 +20,7 @@ open Constraints
 open Yard.Generators.RNGLR
 open InitialConvert
 open Yard.Generators.RNGLR.FinalGrammar
-open Yard.Generators.RNGLR.FinalGrammarDFA
+open Yard.Generators.RNGLR.FinalGrammarNFA
 open States
 open Printer
 open TranslatorPrinter
@@ -100,7 +100,7 @@ type RNGLR() =
                 | _ -> failwithf "Unknown option %A" opt
             let newDefinition = initialConvert definition
             //let grammar = new FinalGrammar(newDefinition.grammar.[0].rules, caseSensitive)
-            let grammar = new FinalGrammarDFA(newDefinition.grammar.[0].rules, caseSensitive)
+            let grammar = new FinalGrammarNFA(newDefinition.grammar.[0].rules, caseSensitive)
 
             (*let printRules () =
                 let printSymbol (symbol : int) =

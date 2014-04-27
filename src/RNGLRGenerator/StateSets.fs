@@ -1,0 +1,34 @@
+﻿module Yard.Generators.RNGLR.StateSets
+
+open Yard.Generators.RNGLR
+open Yard.Generators.RNGLR.GrammarWithDFARightSide
+open Yard.Generators.RNGLR.DFA
+
+let epsilonReachable (rules : NumberedRulesDFA) (indexator : Indexator) =
+    let result : Set<int>[][] = Array.zeroCreate rules.rulesCount
+    for i in 0..rules.rulesCount-1 do
+        result.[i] <- Array.create (rules.numberOfStates i) Set.empty
+        let was : bool[] = Array.zeroCreate (rules.numberOfStates i)
+        let rec getEpsilonReachable (state : Vertex<_,_>) =
+            result.[i].[state.label] <- Set.add state.label result.[i].[state.label]
+            for edge in state.outEdges do
+                if edge.label = indexator.epsilonIndex && not <| Set.contains edge.dest.label result.[i].[state.label] then 
+                    result.[i].[state.label] <- Set.add edge.dest.label result.[i].[state.label]
+                    if not was.[edge.dest.label] then getEpsilonReachable edge.dest
+                    result.[i].[state.label] <- Set.union result.[i].[state.label] result.[i].[edge.dest.label]
+            was.[state.label] <- true        
+        for j = rules.numberOfStates i - 1 downto 0 do
+            if not was.[j] then getEpsilonReachable (rules.state i j)
+    result
+
+let nextPositions (rules : NumberedRulesDFA) (indexator : Indexator) (epsilonReachable : Set<int>[][]) =
+    let result : Set<int>[][] = Array.zeroCreate rules.rulesCount
+    for i in 0..rules.rulesCount-1 do
+        result.[i] <- Array.create (rules.numberOfStates i) Set.empty
+        for j in 0..rules.numberOfStates i - 1 do
+            let (symbol, nextPos) = (rules.symbol i j, rules.nextPos i j)
+            if symbol <> indexator.epsilonIndex then
+                result.[i].[j] <- Set.intersect (rules.usefulStates i) epsilonReachable.[i].[nextPos]
+            else
+                result.[i].[j] <- Set.intersect (rules.usefulStates i) epsilonReachable.[i].[j]
+    result

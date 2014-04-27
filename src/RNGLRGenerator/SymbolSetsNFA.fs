@@ -15,7 +15,6 @@
 module Yard.Generators.RNGLR.SymbolSetsNFA
 
 open Yard.Generators.RNGLR
-//open Yard.Generators.RNGLR.Epsilon
 open Yard.Generators.RNGLR.GrammarWithDFARightSide
 open Yard.Generators.RNGLR.DFA
 
@@ -37,7 +36,7 @@ let firstSetNFA (rules : NumberedRulesDFA) (indexator : Indexator) (canInferEpsi
                             if (x.label = u) then true
                             elif (canInferEpsilon.[x.label] && state.label < x.dest.label) then checkOutSymbols x.dest || checkEdges xs
                             else checkEdges xs
-                    if (state.label - prod.firstStateNumber) >= prod.numberOfStates then false
+                    if state.label >= prod.numberOfStates then false
                     else state.outEdges |> List.ofSeq |> checkEdges
                 checkOutSymbols prod.startState
                     
@@ -57,26 +56,6 @@ let firstSetNFA (rules : NumberedRulesDFA) (indexator : Indexator) (canInferEpsi
             result.[nonTerm] <- result.[nonTerm].Add indexator.epsilonIndex
     result
 
-(*let followSetNFA (rules : NumberedRulesDFA) (indexator : Indexator) (canInferEpsilon : bool[]) (firstSet : Set<int>[]) =
-    let result : Set<int>[][] = Array.zeroCreate rules.rulesCount
-    
-    let rec followForState (state : Vertex<_,_>) fSet stepped =
-        if stepped |> List.exists (fun x -> x = state.label) then ()
-        else
-            for edge in state.outEdges do
-                if (edge.label = indexator.epsilonIndex) then followForState edge.dest fSet (state.label::stepped)
-                else fSet := Set.union !fSet firstSet.[edge.label]
-    
-    for i = 0 to rules.rulesCount-1 do
-        result.[i] <- Array.create (rules.numberOfStates i) Set.empty
-        
-        for j = rules.numberOfStates i - 1 downto 0 do
-            let curSet = ref Set.empty
-            result.[i].[j] <- !curSet
-            let value = rules.symbol i j
-            followForState value curSet []
-    result*)
-
 let followSetNFA (rules : NumberedRulesDFA) (indexator : Indexator) (canInferEpsilon : bool[]) (firstSet : Set<int>[]) =
     let result : Set<int>[][] = Array.zeroCreate rules.rulesCount
         
@@ -89,7 +68,7 @@ let followSetNFA (rules : NumberedRulesDFA) (indexator : Indexator) (canInferEps
                 let state = rules.state i j
                 for edge in state.outEdges |> List.ofSeq |> List.filter (fun (x : Edge<_,_>) -> state.label < x.dest.label) do
                     if (canInferEpsilon.[edge.label]) then 
-                        result.[i].[j] <- Set.union result.[i].[j] result.[i].[rules.relativeStateNumber i edge.dest.label]
+                        result.[i].[j] <- Set.union result.[i].[j] result.[i].[edge.dest.label]
                     if (edge.label <> indexator.epsilonIndex) then 
                         result.[i].[j] <- Set.union result.[i].[j] firstSet.[edge.label]
         let rec addFollows() =
@@ -97,7 +76,7 @@ let followSetNFA (rules : NumberedRulesDFA) (indexator : Indexator) (canInferEps
             for j = rules.numberOfStates i - 1 downto 0 do
                 let state = rules.state i j
                 for edge in state.outEdges do
-                    let nextFollow = result.[i].[rules.relativeStateNumber i edge.dest.label]
+                    let nextFollow = result.[i].[edge.dest.label]
                     if (canInferEpsilon.[edge.label] && not (Set.isSubset nextFollow result.[i].[j])) then
                         modified <- true
                         result.[i].[j] <- Set.union result.[i].[j] nextFollow
