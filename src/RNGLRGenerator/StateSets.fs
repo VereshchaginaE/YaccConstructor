@@ -4,6 +4,7 @@ open Yard.Generators.RNGLR
 open Yard.Generators.RNGLR.GrammarWithDFARightSide
 open Yard.Generators.RNGLR.DFA
 
+//only edges with epsilon, not with terminals that can infer epsilon
 let epsilonReachable (rules : NumberedRulesDFA) (indexator : Indexator) =
     let result : Set<int>[][] = Array.zeroCreate rules.rulesCount
     for i in 0..rules.rulesCount-1 do

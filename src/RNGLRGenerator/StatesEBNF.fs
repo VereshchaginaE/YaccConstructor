@@ -19,35 +19,39 @@ open Yard.Generators.RNGLR.FinalGrammarNFA
 open Yard.Generators.RNGLR
 open Yard.Generators.RNGLR.States
 
-type OutTable = LR | LALR
-
-type Kernel = int
 //type Item = Kernel * Set<int>
 
 type KernelInterpreter =
-    static member inline toKernel (prod,pos) = (prod <<< 16) ||| pos
-    //static member inline incPos kernel = kernel + 1
+    (*static member inline toKernel (prod,pos) = (prod <<< 16) ||| pos
     static member inline getProd kernel = kernel >>> 16
     static member inline getPos kernel = kernel &&& ((1 <<< 16) - 1)
     static member inline unzip kernel = (KernelInterpreter.getProd kernel, KernelInterpreter.getPos kernel)
     static member inline kernelsOfState = fst
-    static member inline lookAheadsOfState = snd
+    static member inline lookAheadsOfState = snd*)
+
+    static member inline nextPos (grammar : FinalGrammarNFA) kernel =
+        let rule = KernelInterpreter.getProd kernel
+        let pos = KernelInterpreter.getPos kernel
+        let nextStates = grammar.nextPositions.[rule].[pos]
+        nextStates |> Set.map (fun x -> KernelInterpreter.toKernel(rule, x))
 
     static member inline symbol (grammar : FinalGrammarNFA) kernel =
         let rule = KernelInterpreter.getProd kernel
         let pos = KernelInterpreter.getPos kernel
-        if grammar.rules.numberOfStates rule = pos then grammar.indexator.eofIndex
+        if pos = grammar.rules.numberOfStates rule - 1 then grammar.indexator.eofIndex
         else grammar.rules.symbol rule pos
 
     static member inline symbolAndLookAheads (grammar : FinalGrammarNFA) (kernel, endLookeheads) =
         let rule = KernelInterpreter.getProd kernel
         let pos = KernelInterpreter.getPos kernel
-        if grammar.rules.length rule = pos then
+        if pos = grammar.rules.numberOfStates rule - 1 then
             grammar.indexator.eofIndex, Set.empty
         else
             let lookAheads =
-                if grammar.epsilonTailStart.[rule] > pos + 1 then grammar.followSet.[rule].[pos]
-                else Set.union grammar.followSet.[rule].[pos] endLookeheads
+                let nextPositions = grammar.nextPositions.[rule].[pos]
+                if nextPositions |> Seq.exists (fun x -> grammar.hasEpsilonTail.[rule].[x]) 
+                    then Set.union grammar.followSet.[rule].[pos] endLookeheads
+                else grammar.followSet.[rule].[pos]
             grammar.rules.symbol rule pos, lookAheads
     
 let buildStatesNFA outTable (grammar : FinalGrammarNFA) = //(kernelIndexator : KernelIndexator) =
@@ -87,18 +91,19 @@ let buildStatesNFA outTable (grammar : FinalGrammarNFA) = //(kernelIndexator : K
         while queue.Count > 0 do
             let nonterm, symbolSet = queue.Dequeue()
             for rule in grammar.rules.rulesWithLeftSide nonterm do
-                let kernel = KernelInterpreter.toKernel (rule,0)
-                let newSymbolSet = 
-                    if not <| result.Contains kernel then
-                        result <- result.Add kernel
-                        kernelToLookAhead.Add(kernel, symbolSet)
-                        symbolSet
-                    else
-                        let newSymbolSet = Set.difference symbolSet kernelToLookAhead.[kernel]
-                        kernelToLookAhead.[kernel] <- Set.union kernelToLookAhead.[kernel] newSymbolSet
-                        newSymbolSet
-                if grammar.rules.length rule > 0 && (not newSymbolSet.IsEmpty || not wasNonTerm.[grammar.rules.symbol rule 0]) then
-                    enqueue <| symbolAndLookAheads (kernel, newSymbolSet)
+                let kernelsAndStarts = grammar.startPositions.[rule] |> Set.map (fun x -> KernelInterpreter.toKernel (rule,x), x)
+                for (kernel, startPosition) in kernelsAndStarts do                
+                    let newSymbolSet = 
+                        if not <| result.Contains kernel then
+                            result <- result.Add kernel
+                            kernelToLookAhead.Add(kernel, symbolSet)
+                            symbolSet
+                        else
+                            let newSymbolSet = Set.difference symbolSet kernelToLookAhead.[kernel]
+                            kernelToLookAhead.[kernel] <- Set.union kernelToLookAhead.[kernel] newSymbolSet
+                            newSymbolSet
+                    if (*grammar.rules.length rule > 0 &&*) (not newSymbolSet.IsEmpty || not wasNonTerm.[grammar.rules.symbol rule startPosition]) then
+                        enqueue <| symbolAndLookAheads (kernel, newSymbolSet)
         for (f,s) in addedNTermsSymbols do
             wasNonTerm.[f] <- false
             wasNTermSymbol.[f,s] <- false
@@ -172,24 +177,22 @@ let buildStatesNFA outTable (grammar : FinalGrammarNFA) = //(kernelIndexator : K
             stateToLookahead.Add lookaheads
             for i = 0 to grammar.indexator.fullCount - 1 do
                 if i <> grammar.indexator.eofIndex then
-                    let mutable count = 0
+                    let destStates = new ResizeArray<int * Set<int>>()
                     for j = 0 to kernels.Length-1 do
-                        if curSymbol kernels.[j] = i && not lookaheads.[j].IsEmpty then
-                            count <- count + 1
-                    if count > 0 then
-                        let destStates = Array.zeroCreate count
-                        let mutable curi = 0
-                        for j = 0 to kernels.Length-1 do
                             if curSymbol kernels.[j] = i && not lookaheads.[j].IsEmpty then
-                                destStates.[curi] <- KernelInterpreter.incPos kernels.[j], lookaheads.[j]
-                                curi <- curi + 1
-                        let newVertex : Vertex<_,_> = dfsLR destStates
+                                let nextKernels = KernelInterpreter.nextPos grammar kernels.[j]
+                                for nextKernel in nextKernels do
+                                    destStates.Add (nextKernel, lookaheads.[j])
+                    if destStates.Count <> 0 then
+                        let newVertex : Vertex<_,_> = destStates.ToArray() |> dfsLR
                         //wasEdge.[vertex.label] <- wasEdge.[vertex.label].Add newVertex.label
                         vertex.addEdge <| new Edge<_,_>(newVertex, i)
             vertex
-    let initKernel = KernelInterpreter.toKernel(grammar.startRule, 0)
+
+    let initKernels = grammar.startPositions.[grammar.startRule] |> Set.map (fun x -> KernelInterpreter.toKernel(grammar.startRule, x))
     let initLookAhead = Set.ofSeq [grammar.indexator.eofIndex]
-    [| initKernel, initLookAhead|]
+    let initKernelsAndLookAheads = Set.map (fun x -> (x, initLookAhead)) initKernels |> Set.toArray
+    initKernelsAndLookAheads
     |> match outTable with
         | LALR //-> dfsLALR
         | LR -> dfsLR
