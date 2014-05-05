@@ -61,8 +61,10 @@ let buildStatesNFA outTable (grammar : FinalGrammarNFA) = //(kernelIndexator : K
         , (fun () -> !num + 1)
     let kernelsToVertex = new Dictionary<string, Vertex<int,int>>()
     let vertices = new ResizeArray<Vertex<int,int> >()
-    let stateToKernels = new ResizeArray<Kernel[]>()
-    let stateToLookahead = new ResizeArray<Set<int>[] >()
+    let stateToMainKernels = new ResizeArray<Kernel[]>()
+    let stateToMainLookahead = new ResizeArray<Set<int>[] >()
+    let stateToDerivedKernels = new ResizeArray<Kernel[]>()
+    let stateToDerivedLookahead = new ResizeArray<Set<int>[] >()
     let curSymbol kernel = KernelInterpreter.symbol grammar kernel
     let symbolAndLookAheads (*kernel lookAheads*) = KernelInterpreter.symbolAndLookAheads grammar
     let wasEdge = new ResizeArray<Set<int> >()
@@ -70,10 +72,12 @@ let buildStatesNFA outTable (grammar : FinalGrammarNFA) = //(kernelIndexator : K
     let wasNTermSymbol : bool[,] = Array2D.zeroCreate grammar.indexator.fullCount grammar.indexator.fullCount
     let addedNTermsSymbols = new ResizeArray<_>(grammar.indexator.fullCount * grammar.indexator.fullCount)
 
-    let closure (kernelsAndLookAheads : (Kernel * Set<int>)[]) =
+    let closure (mainKernelsAndLookAheads : (Kernel * Set<int>)[]) =
         //eprintf "%d " <| addedNTermsSymbols.Capacity
-        let mutable result = kernelsAndLookAheads |> Array.map fst |> Set.ofArray
-        let kernelToLookAhead = new Dictionary<_,_> ()// Array.zip kernels lookAheads |> dict
+        let mutable resultMain = mainKernelsAndLookAheads |> Array.map fst |> Set.ofArray
+        let mutable resultDerived : Set<Kernel>  = Set.empty
+        let mainKernelToLookAhead = new Dictionary<_,_> ()// Array.zip kernels lookAheads |> dict
+        let derivedKernelToLookAhead = new Dictionary<_,_> ()
         let queue = new Queue<_>()
         let enqueue (nonTerm, symbolSet) = 
             let checkWas symbol =
@@ -85,22 +89,26 @@ let buildStatesNFA outTable (grammar : FinalGrammarNFA) = //(kernelIndexator : K
                 else false
             let newSymbolSet = Set.filter checkWas symbolSet
             queue.Enqueue (nonTerm, newSymbolSet)
-        for i = 0 to kernelsAndLookAheads.Length - 1 do
-            kernelToLookAhead.Add (kernelsAndLookAheads.[i])
-            enqueue <| symbolAndLookAheads kernelsAndLookAheads.[i]
+        for i = 0 to mainKernelsAndLookAheads.Length - 1 do
+            if (fst mainKernelsAndLookAheads.[i] |> mainKernelToLookAhead.ContainsKey |> not) then
+                mainKernelToLookAhead.Add (mainKernelsAndLookAheads.[i])
+            else
+                mainKernelToLookAhead.[fst mainKernelsAndLookAheads.[i]] 
+                    <- Set.union mainKernelToLookAhead.[fst mainKernelsAndLookAheads.[i]] (snd mainKernelsAndLookAheads.[i])
+            enqueue <| symbolAndLookAheads mainKernelsAndLookAheads.[i]
         while queue.Count > 0 do
             let nonterm, symbolSet = queue.Dequeue()
             for rule in grammar.rules.rulesWithLeftSide nonterm do
                 let kernelsAndStarts = grammar.startPositions.[rule] |> Set.map (fun x -> KernelInterpreter.toKernel (rule,x), x)
                 for (kernel, startPosition) in kernelsAndStarts do                
                     let newSymbolSet = 
-                        if not <| result.Contains kernel then
-                            result <- result.Add kernel
-                            kernelToLookAhead.Add(kernel, symbolSet)
+                        if not <| resultDerived.Contains kernel then
+                            resultDerived <- resultDerived.Add kernel
+                            derivedKernelToLookAhead.Add(kernel, symbolSet)
                             symbolSet
                         else
-                            let newSymbolSet = Set.difference symbolSet kernelToLookAhead.[kernel]
-                            kernelToLookAhead.[kernel] <- Set.union kernelToLookAhead.[kernel] newSymbolSet
+                            let newSymbolSet = Set.difference symbolSet derivedKernelToLookAhead.[kernel]
+                            derivedKernelToLookAhead.[kernel] <- Set.union derivedKernelToLookAhead.[kernel] newSymbolSet
                             newSymbolSet
                     if (*grammar.rules.length rule > 0 &&*) (not newSymbolSet.IsEmpty || not wasNonTerm.[grammar.rules.symbol rule startPosition]) then
                         enqueue <| symbolAndLookAheads (kernel, newSymbolSet)
@@ -108,8 +116,8 @@ let buildStatesNFA outTable (grammar : FinalGrammarNFA) = //(kernelIndexator : K
             wasNonTerm.[f] <- false
             wasNTermSymbol.[f,s] <- false
         addedNTermsSymbols.Clear()
-        Array.ofSeq result
-        |> (fun ks -> ks , ks |> Array.map (fun x -> kernelToLookAhead.[x]))
+        (Array.ofSeq resultMain, Array.ofSeq resultDerived)
+        |> (fun (mks, dks) -> mks , mks |> Array.map (fun x -> mainKernelToLookAhead.[x]), dks , dks |> Array.map (fun x -> derivedKernelToLookAhead.[x]))
 
     let incount = ref 0
     (*let rec dfsLALR initKernelsAndLookAheads =
@@ -162,9 +170,9 @@ let buildStatesNFA outTable (grammar : FinalGrammarNFA) = //(kernelIndexator : K
     let rec dfsLR initKernelsAndLookAheads =
         incr incount
         if !incount % 5000 = 0 then eprintf "%d " !incount
-        let kernels,lookaheads = initKernelsAndLookAheads |> closure
+        let mainKernels,mainLookaheads,derivedKernels,derivedLookaheads = initKernelsAndLookAheads |> closure
         let setToStr = Set.map (sprintf "%d") >> String.concat ","
-        let key = String.concat "|" (Array.map2 (fun x y -> sprintf "%d(%s)" x (setToStr y)) kernels lookaheads)
+        let key = String.concat "|" (Array.map2 (fun x y -> sprintf "%d(%s)" x (setToStr y)) mainKernels mainLookaheads)
         //printfn "%s" key
         if kernelsToVertex.ContainsKey key then
             kernelsToVertex.[key]
@@ -173,16 +181,23 @@ let buildStatesNFA outTable (grammar : FinalGrammarNFA) = //(kernelIndexator : K
             //wasEdge.Add Set.empty
             vertices.Add vertex
             kernelsToVertex.[key] <- vertex
-            stateToKernels.Add kernels
-            stateToLookahead.Add lookaheads
+            stateToMainKernels.Add mainKernels
+            stateToMainLookahead.Add mainLookaheads
+            stateToDerivedKernels.Add derivedKernels
+            stateToDerivedLookahead.Add derivedLookaheads
             for i = 0 to grammar.indexator.fullCount - 1 do
                 if i <> grammar.indexator.eofIndex then
                     let destStates = new ResizeArray<int * Set<int>>()
-                    for j = 0 to kernels.Length-1 do
-                            if curSymbol kernels.[j] = i && not lookaheads.[j].IsEmpty then
-                                let nextKernels = KernelInterpreter.nextPos grammar kernels.[j]
+                    for j = 0 to mainKernels.Length-1 do
+                            if curSymbol mainKernels.[j] = i && not mainLookaheads.[j].IsEmpty then
+                                let nextKernels = KernelInterpreter.nextPos grammar mainKernels.[j]
                                 for nextKernel in nextKernels do
-                                    destStates.Add (nextKernel, lookaheads.[j])
+                                    destStates.Add (nextKernel, mainLookaheads.[j])
+                    for j = 0 to derivedKernels.Length-1 do
+                            if curSymbol derivedKernels.[j] = i && not derivedLookaheads.[j].IsEmpty then
+                                let nextKernels = KernelInterpreter.nextPos grammar derivedKernels.[j]
+                                for nextKernel in nextKernels do
+                                    destStates.Add (nextKernel, derivedLookaheads.[j])
                     if destStates.Count <> 0 then
                         let newVertex : Vertex<_,_> = destStates.ToArray() |> dfsLR
                         //wasEdge.[vertex.label] <- wasEdge.[vertex.label].Add newVertex.label
@@ -222,4 +237,4 @@ let buildStatesNFA outTable (grammar : FinalGrammarNFA) = //(kernelIndexator : K
         for edge in vertex.outEdges do
             printf "(%s,%d) " (printSymbol edge.label) edge.dest.label
         printfn ""*)
-    new StatesInterpreter(vertices.ToArray(), stateToKernels.ToArray(), stateToLookahead.ToArray())
+    new StatesInterpreterEBNF(vertices.ToArray(), stateToMainKernels.ToArray(), stateToMainLookahead.ToArray(), stateToDerivedKernels.ToArray(), stateToDerivedLookahead.ToArray())
