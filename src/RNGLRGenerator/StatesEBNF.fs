@@ -53,6 +53,14 @@ type KernelInterpreter =
                     then Set.union grammar.followSet.[rule].[pos] endLookeheads
                 else grammar.followSet.[rule].[pos]
             grammar.rules.symbol rule pos, lookAheads
+
+type StatesInterpreterEBNF (stateToVertex : Vertex<int,int>[], stateToMainKernels : Kernel[][], stateToMainLookahead : Set<int>[][], stateToDerivedKernels : Kernel[][], stateToDerivedLookahead : Set<int>[][]) =
+    member this.count = stateToVertex.Length
+    member this.vertex i = stateToVertex.[i]
+    member this.mainKernels i = stateToMainKernels.[i]
+    member this.mainLookaheads i = stateToMainLookahead.[i]
+    member this.derivedKernels i = stateToDerivedKernels.[i]
+    member this.derivedlLokaheads i = stateToDerivedLookahead.[i]
     
 let buildStatesNFA outTable (grammar : FinalGrammarNFA) = //(kernelIndexator : KernelIndexator) =
     let nextIndex, vertexCount =
