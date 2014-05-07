@@ -46,7 +46,9 @@
     <Compile Include="States.fs" />
     <Compile Include="StatesEBNF.fs" />
     <Compile Include="Tables.fs" />
+    <Compile Include="TablesEBNF.fs" />
     <Compile Include="PrintTables.fs" />
+    <Compile Include="PrintTablesEBNF.fs" />
     <Compile Include="PrintTranslator.fs" />
     <Compile Include="RNGLRGenerator.fs" />
     <None Include="packages.config" />

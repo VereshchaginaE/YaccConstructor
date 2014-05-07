@@ -41,6 +41,7 @@
     <Compile Include="LolCalc.yrd.fs" />
     <Compile Include="Omit.yrd.fs" />
     <Compile Include="RNGLRParserSimpleTest.fs" />
+    <Compile Include="SimpleOneTerm.yrd.fs" />
     <None Include="Calc.yrd" />
     <None Include="ComplexRightNull.yrd" />
     <None Include="Cond.yrd" />

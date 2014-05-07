@@ -18,7 +18,7 @@ type NumberedRulesDFA (ruleList : Rule.t<Source.t,Source.t> list, indexator : In
             let nextStateNumber, vertexCount =
                 let number = ref -1
                 (fun () -> incr number; !number),
-                (fun () -> !number)
+                (fun () -> !number + 1)
             let nextStateVertex (stateToVertex : ResizeArray<_>) = 
                 let nextVertex = new Vertex<_,_>(nextStateNumber())
                 stateToVertex.Add(nextVertex)

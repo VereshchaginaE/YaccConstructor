@@ -21,7 +21,9 @@ open Yard.Generators.RNGLR
 open InitialConvert
 open Yard.Generators.RNGLR.FinalGrammar
 open Yard.Generators.RNGLR.FinalGrammarNFA
+open Yard.Generators.RNGLR.EBNF
 open States
+open StatesEBNF
 open Printer
 open TranslatorPrinter
 open Option
@@ -130,9 +132,9 @@ type RNGLR() =
                         grammar.epsilonTrees.[grammar.indexator.nonTermToIndex nonTerm].AstToDot
                             grammar.indexator.indexToNonTerm (fun _ -> 0) grammar.rules.leftSideArr
                             (System.IO.Path.Combine (printInfiniteEpsilonPath, nonTerm + ".dot"))
-                grammar.epsilonTrees |> Array.iter (fun t -> if t <> null then t.EliminateCycles())
-            let statesInterpreter = buildStates table grammar*)
-            (*let tables = new Tables(grammar, statesInterpreter)
+                grammar.epsilonTrees |> Array.iter (fun t -> if t <> null then t.EliminateCycles())*)
+            let statesInterpreter = buildStatesNFA table grammar
+            let tables = new TablesEBNF(grammar, statesInterpreter)
             use out = new System.IO.StreamWriter (output)
             let res = new System.Text.StringBuilder()
             let dummyPos = char 0
@@ -158,6 +160,7 @@ type RNGLR() =
 
                     println "open Yard.Generators.RNGLR.Parser"
                     println "open Yard.Generators.RNGLR"
+                    println "open Yard.Generators.RNGLR.EBNF"
                     println "open Yard.Generators.RNGLR.AST"
 
                     match definition.head with
@@ -178,10 +181,11 @@ type RNGLR() =
                 | Scala -> scalaHeaders()
 
             printHeaders moduleName fullPath light output targetLanguage
-            let tables = printTables grammar definition.head tables moduleName tokenType res targetLanguage _class positionType caseSensitive
-            let res = if not needTranslate || targetLanguage = Scala then tables
+            let tables = printTablesEBNF grammar definition.head tables moduleName tokenType res targetLanguage _class positionType caseSensitive
+            (*let res = if not needTranslate || targetLanguage = Scala then tables
                       else tables + printTranslator grammar newDefinition.grammar.[0].rules
-                                        positionType fullPath output dummyPos caseSensitive
+                                        positionType fullPath output dummyPos caseSensitive*)
+            let res = tables
             let res = 
                 match definition.foot with
                 | None -> res
@@ -204,7 +208,7 @@ type RNGLR() =
                 | Scala -> res + "\n}"
             out.WriteLine res
             out.Close()
-            eprintfn "Generation time: %A" <| System.DateTime.Now - start*)
+            eprintfn "Generation time: %A" <| System.DateTime.Now - start
             //(new YardPrinter()).Generate newDefinition
             box ()
         override this.Generate definition = this.Generate (definition, "")
