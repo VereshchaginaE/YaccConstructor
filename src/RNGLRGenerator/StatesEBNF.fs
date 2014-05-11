@@ -41,7 +41,7 @@ type KernelInterpreter =
         if pos = grammar.rules.numberOfStates rule - 1 then grammar.indexator.eofIndex
         else grammar.rules.symbol rule pos
 
-    static member inline symbolAndLookAheads (grammar : FinalGrammarNFA) (kernel, endLookeheads) =
+    static member symbolAndLookAheads (grammar : FinalGrammarNFA) (kernel, endLookeheads) =
         let rule = KernelInterpreter.getProd kernel
         let pos = KernelInterpreter.getPos kernel
         if pos = grammar.rules.numberOfStates rule - 1 then
@@ -52,7 +52,7 @@ type KernelInterpreter =
                 if nextPositions |> Seq.exists (fun x -> grammar.hasEpsilonTail.[rule].[x]) 
                     then Set.union grammar.followSet.[rule].[pos] endLookeheads
                 else grammar.followSet.[rule].[pos]
-            grammar.rules.symbol rule pos, lookAheads
+            grammar.rules.symbol rule pos, Set.remove grammar.indexator.epsilonIndex lookAheads
 
 type StackLabel =
     | Stack of Set<int>
@@ -216,7 +216,7 @@ let buildStatesNFA outTable (grammar : FinalGrammarNFA) = //(kernelIndexator : K
                     for j = 0 to derivedKernels.Length-1 do
                             if curSymbol derivedKernels.[j] = i && not derivedLookaheads.[j].IsEmpty then
                                 let nextKernels = KernelInterpreter.nextPos grammar derivedKernels.[j]
-                                stackSet <- Set.add (KernelInterpreter.getProd j) stackSet 
+                                stackSet <- Set.add (KernelInterpreter.getProd derivedKernels.[j]) stackSet
                                 for nextKernel in nextKernels do
                                     destStates.Add (nextKernel, derivedLookaheads.[j])
                     if destStates.Count <> 0 then

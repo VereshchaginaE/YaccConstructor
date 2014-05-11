@@ -123,6 +123,7 @@ let printTablesEBNF
     let printTablesToFSharp () =
         let printArr (arr : 'a[]) printer = printArr "" "[|" "|]" "; " (arr : 'a[]) printer
         let printListAsArray l printer = printList "" "[|" "|]" "; " l printer
+        let printSetAsArray s printer = printList "" "[|" "|]" "; " (Set.toList s) printer
         let printList l printer = printList "" "[" "]" "; " l printer
 
         let resultReducesArrayCreationCodePrinter name = 
@@ -145,7 +146,7 @@ let printTablesEBNF
             let name = "gotos"
             printBrInd 0 "let %s = Array.zeroCreate %d" name statesCount 
             printBrInd 0 "for i = 0 to %d do" statesLim
-            printBrInd 2 "%s.[i] <- Array.zeroCreate %d" name symbolsCount
+            printBrInd 2 "%s.[i] <- Array.create %d None" name symbolsCount
 
             printBrInd 0 "cur <- 0"
             printBrInd 0 "while cur < small_%s.Length do" name
@@ -158,16 +159,16 @@ let printTablesEBNF
             
             printBrInd 2 "let label = small_%s.[cur + k*2 + 1] >>> 16" name
             printBrInd 2 "let setId = small_%s.[cur + k*2 + 1] &&& %d" name andNum
-            printBrInd 2 "let stackLabel = StackLabel.GetStackLabel label stackSets.[setId]"
+            printBrInd 2 "let stackLabel = GetStackLabel label setId"
 
-            printBrInd 2 "%s.[i].[j] <- (lists_%s.[x], stackLabel)" name name
-            printBrInd 1 "cur <- cur + length"
+            printBrInd 2 "%s.[i].[j] <- Some (lists_%s.[x], stackLabel)" name name
+            printBrInd 1 "cur <- cur + length * 2"
                 
         let printGotoArrList() =
             // although we have lists of gotos and stacLabels, only first elements of these lists are really processed
             let checker = fun (x : _ list ) -> not x.IsEmpty
             let printerGotos = fun (x : _ list ) -> print "%d" x.[0]
-            let printersStackSets = fun x -> printArr (Set.toArray x) (fun y -> print "%d" y)
+            let printersStackSets = fun x -> printSetAsArray x (fun y -> print "%d" y)
             let name = "gotos"
             let lBr : Printf.StringFormat<_,_> =  "[|"
             let rBr : Printf.StringFormat<_,_> =  "|]"
@@ -210,8 +211,9 @@ let printTablesEBNF
                 stackSetListsArr.[v.Value] <- v.Key
             printInd 0 (Printf.StringFormat<_,_>(bindKW + " lists_%s = ")) name
             printArr gotoListsArr printerGotos
-            printInd 0 (Printf.StringFormat<_,_>(bindKW + " lists_%s = ")) "stackSets"
+            printInd 0 (Printf.StringFormat<_,_>(bindKW + " %s = ")) "stackArrays"
             printArr stackSetListsArr printersStackSets
+            printBrInd 0 (Printf.StringFormat<_,_>(bindKW + " %s = stackArrays |> Array.map Set.ofArray")) "stackSets"
 
             printBrInd 0 (Printf.StringFormat<_,_>(bindKW + " small_%s =")) name
             printInd 2 lBr
@@ -373,16 +375,16 @@ let printTablesEBNF
 
         printBrInd 0 "let eofIndex = %d" grammar.indexator.eofIndex
     
-        //printBrInd 0 "let errorIndex = %d" grammar.errorIndex
+        printBrInd 0 "let errorIndex = %d" grammar.errorIndex
         //printBrInd 0 "let errorRulesExists = %b" grammar.errorRulesExists
         
-        printBrInd 0 "let private parserSource = new ParserSource<Token> (gotos, reduces, zeroReduces, accStates, rules, rulesStart, leftSide, startRule, eofIndex, tokenToNumber, acceptEmptyInput, numToString, errorIndex, errorRulesExists)"
+        printBrInd 0 "let private parserSource = new ParserSourceEBNF<Token> (gotos, reduces, zeroReduces, stackSets, accStates, leftSide, startRule, eofIndex, tokenToNumber, acceptEmptyInput, numToString, errorIndex)"
 
-        printBr "let buildAstAbstract : (seq<int*array<'TokenType*int>> -> ParseResult<Token>) ="
+        (*printBr "let buildAstAbstract : (seq<int*array<'TokenType*int>> -> ParseResult<Token>) ="
         printBrInd 1 "buildAstAbstract<Token> parserSource"
-        printBr ""
+        printBr ""*)
         
-        printBr "let buildAst : (seq<'TokenType> -> ParseResult<Token>) ="
+        printBr "let buildAst : (seq<'TokenType> -> ParseResultEBNF<Token>) ="
         printBrInd 1 "buildAst<Token> parserSource"
         printBr ""
         res.ToString()

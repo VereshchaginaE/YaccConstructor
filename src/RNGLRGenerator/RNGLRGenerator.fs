@@ -158,9 +158,11 @@ type RNGLR() =
                         println "#light \"off\""
                     println "#nowarn \"64\";; // From fsyacc: turn off warnings that type variables used in production annotations are instantiated to concrete type"
 
-                    println "open Yard.Generators.RNGLR.Parser"
+                    //println "open Yard.Generators.RNGLR.Parser"
                     println "open Yard.Generators.RNGLR"
+                    println "open Yard.Generators.RNGLR.StackLabel"
                     println "open Yard.Generators.RNGLR.EBNF"
+                    println "open Yard.Generators.RNGLR.ParserEBNF"                    
                     println "open Yard.Generators.RNGLR.AST"
 
                     match definition.head with

@@ -34,7 +34,7 @@ let usefulStates (rules : NumberedRulesDFA) (indexator : Indexator) =
 let startPositions (rules : NumberedRulesDFA) (epsilonReachable : Set<int>[][]) (usefulStates : Set<int>[]) =
     let result : Set<int>[] = Array.create rules.rulesCount Set.empty
     for i in 0..rules.rulesCount-1 do
-        result.[i] <- Set.union epsilonReachable.[i].[0] usefulStates.[i]
+        result.[i] <- Set.intersect epsilonReachable.[i].[0] usefulStates.[i]
     result
 
 let nextPositions (rules : NumberedRulesDFA) (indexator : Indexator) (epsilonReachable : Set<int>[][]) (usefulStates : Set<int>[]) =

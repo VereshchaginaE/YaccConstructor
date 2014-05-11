@@ -23,8 +23,8 @@
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <StartArguments>-i ..\..\..\src\RNGLRParser.SimpleTest\SimpleOneTerm.yrd -c ExpandMeta ^
-        -g "RNGLRGenerator -pos int -token int -module RNGLR.ParseSimpleOneTerm -translate true -table LR -o SimpleOneTerm.yrd.fs"</StartArguments>
+    <StartArguments>-i ..\..\..\src\RNGLRParserEBNF.SimpleTest\ComplexRightNull.yrd -c ExpandMeta ^
+        -g "RNGLRGenerator -pos int -token int -module RNGLR.ParseComplexRightNull -translate true -table LR -o ComplexRightNull.yrd.fs"</StartArguments>
     <EnableUnmanagedDebugging>true</EnableUnmanagedDebugging>
   </PropertyGroup>
   <Import Project="../YC.targets" />

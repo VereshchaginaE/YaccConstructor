@@ -1,0 +1,41 @@
+. 
+ComplexRightNull 
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+<null>. 
+Longest 
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+<null>. 
+ManyAndOne 
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+<null>. 
+RightNull 
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+<null>. 
+SimpleOneTerm 
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+<null>. 
+SimpleRightNull 
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+<null>. 
+SimpleTwoTerms 
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+<null>. 
+TwoEpsilonsMiddle 
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+Assambly yWorks.yFilesWPF.Viewer, Version=2.3.0.4, Culture=neutral, PublicKeyToken=1010a0d8d6380325 could not de loaded.
+<null>

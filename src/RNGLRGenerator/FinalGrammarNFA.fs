@@ -22,7 +22,7 @@ type FinalGrammarNFA(ruleList : Rule.t<Source.t,Source.t> list, caseSensitive) =
     //let _epsilonCyclicNonTerms = getEpsilonCyclicNonTerms _numberedRules _indexator _canInferEpsilon // нетермиалы
     //let _epsilonTrees = epsilonTrees _numberedRules _indexator _canInferEpsilon // написать Дмитрию Авдюхину. 
     //let _epsilonTailStart = epsilonTailStart _numberedRules _canInferEpsilon
-    //let _errorIndex = _indexator.errorIndex // номер для терминала-еррора
+    let _errorIndex = _indexator.errorIndex // номер для терминала-еррора
     //let _errorRulesExists = _numberedRules.errorRulesExists // проверка на правила с ошибками (error recovery)
 
     member this.indexator = _indexator
@@ -39,5 +39,5 @@ type FinalGrammarNFA(ruleList : Rule.t<Source.t,Source.t> list, caseSensitive) =
     //member this.epsilonTrees = _epsilonTrees
     //member this.epsilonTailStart = _epsilonTailStart
     member this.startRule = _nfaRules.startRule
-    //member this.errorIndex = _errorIndex
+    member this.errorIndex = _errorIndex
     //member this.errorRulesExists = _errorRulesExists

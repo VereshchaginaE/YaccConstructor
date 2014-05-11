@@ -5,19 +5,6 @@ open Yard.Generators.RNGLR.States
 open Yard.Generators.RNGLR.StatesEBNF
 open Yard.Generators.RNGLR
 
-module StackLabel =
-    type t =
-        | DontStack
-        | Stack of int[]
-        | StackingConflict of int[]
-
-    let GetStackLabel label rules =
-        match label with
-        | 0 -> DontStack
-        | 1 -> Stack rules
-        | 2 -> StackingConflict rules
-        | _ -> failwith "GetStackLabel wrong argument"
-
 type TablesEBNF(grammar : FinalGrammarNFA, states : StatesInterpreterEBNF) =
     let _reduces, _gotos, _acc =
         let symbolCount = grammar.indexator.fullCount
