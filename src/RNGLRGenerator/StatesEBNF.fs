@@ -49,10 +49,14 @@ type KernelInterpreter =
         else
             let lookAheads =
                 let nextPositions = grammar.nextPositions.[rule].[pos]
-                if nextPositions |> Seq.exists (fun x -> grammar.hasEpsilonTail.[rule].[x]) 
-                    then Set.union grammar.followSet.[rule].[pos] endLookeheads
-                else grammar.followSet.[rule].[pos]
-            grammar.rules.symbol rule pos, Set.remove grammar.indexator.epsilonIndex lookAheads
+                let hasEpsilonTail = ref false
+                let foldFun acc x =
+                     if grammar.hasEpsilonTail.[rule].[x] then hasEpsilonTail := true
+                     Set.union grammar.followSet.[rule].[x] acc
+                nextPositions |> Set.fold foldFun Set.empty
+                |> Set.remove grammar.indexator.epsilonIndex
+                |> fun x -> if !hasEpsilonTail then Set.union x endLookeheads else x
+            grammar.rules.symbol rule pos, lookAheads
 
 type StackLabel =
     | Stack of Set<int>

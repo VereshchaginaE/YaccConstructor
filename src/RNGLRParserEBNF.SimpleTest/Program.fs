@@ -25,7 +25,7 @@ type ``RNGLR parser tests with simple lexer`` () =
 
         match run path parser with
         | Error (num, tok, err, _) -> printErr (num, tok, err)
-        | Success (_) -> printfn "Success"
+        | Success (tree, _) -> printfn "Success"
 
     member test.``Longest test``() =
         let parser = RNGLR.ParseLongest.buildAst
@@ -33,7 +33,9 @@ type ``RNGLR parser tests with simple lexer`` () =
 
         match run path parser with
         | Error (num, tok, err, _) -> printErr (num, tok, err)
-        | Success (_) -> printfn "Success"
+        | Success (tree, _) ->
+            printfn "Success"
+            RNGLR.ParseLongest.defaultAstToDot tree "longest.ast.dot"
 
     member test.``Longest epsilon test``() =
         let parser = RNGLR.ParseLongest.buildAst
@@ -41,7 +43,7 @@ type ``RNGLR parser tests with simple lexer`` () =
 
         match run path parser with
         | Error (num, tok, err, _) -> printErr (num, tok, err)
-        | Success (_) -> printfn "Success"
+        | Success (tree, _) -> printfn "Success"
 
     member test.``ManyAndOne epsilon test``() =
         let parser = RNGLR.ParseManyAndOne.buildAst
@@ -49,7 +51,7 @@ type ``RNGLR parser tests with simple lexer`` () =
 
         match run path parser with
         | Error (num, tok, err, _) -> printErr (num, tok, err)
-        | Success (_) -> printfn "Success"
+        | Success (tree, _) -> printfn "Success"
 
     member test.``ManyAndOne one test``() =
         let parser = RNGLR.ParseManyAndOne.buildAst
@@ -57,7 +59,7 @@ type ``RNGLR parser tests with simple lexer`` () =
 
         match run path parser with
         | Error (num, tok, err, _) -> printErr (num, tok, err)
-        | Success (_) -> printfn "Success"
+        | Success (tree, _) -> printfn "Success"
 
     member test.``ManyAndOne many test``() =
         let parser = RNGLR.ParseManyAndOne.buildAst
@@ -65,7 +67,9 @@ type ``RNGLR parser tests with simple lexer`` () =
 
         match run path parser with
         | Error (num, tok, err, _) -> printErr (num, tok, err)
-        | Success (_) -> printfn "Success"
+        | Success (tree, _) ->
+            printfn "Success"
+            RNGLR.ParseManyAndOne.defaultAstToDot tree "ast.dot"
 
     member test.``ManyAndOne wrong test``() =
         let parser = RNGLR.ParseManyAndOne.buildAst
@@ -73,7 +77,7 @@ type ``RNGLR parser tests with simple lexer`` () =
 
         match run path parser with
         | Error (num, tok, err, _) -> printErr (num, tok, err)
-        | Success (_) -> printfn "Success"
+        | Success (tree, _) -> printfn "Success"
 
     member test.``SimpleRightNull test``() =
         let parser = RNGLR.ParseSimpleRightNull.buildAst
@@ -81,7 +85,7 @@ type ``RNGLR parser tests with simple lexer`` () =
 
         match run path parser with
         | Error (num, tok, err, _) -> printErr (num, tok, err)
-        | Success (_) -> printfn "Success"
+        | Success (tree, _) -> printfn "Success"
 
     member test.``RightNull test``() =
         let parser = RNGLR.ParseRightNull.buildAst
@@ -89,7 +93,7 @@ type ``RNGLR parser tests with simple lexer`` () =
 
         match run path parser with
         | Error (num, tok, err, _) -> printErr (num, tok, err)
-        | Success (_) -> printfn "Success"
+        | Success (tree, _) -> printfn "Success"
 
     member test.``TwoEpsilonsMiddle test``() =
         let parser = RNGLR.ParseTwoEpsilonsMiddle.buildAst
@@ -97,7 +101,7 @@ type ``RNGLR parser tests with simple lexer`` () =
 
         match run path parser with
         | Error (num, tok, err, _) -> printErr (num, tok, err)
-        | Success (_) -> printfn "Success"
+        | Success (tree, _) -> printfn "Success"
 
     member test.``TwoEpsilonsMiddleWrong test``() =
         let parser = RNGLR.ParseTwoEpsilonsMiddle.buildAst
@@ -105,7 +109,7 @@ type ``RNGLR parser tests with simple lexer`` () =
 
         match run path parser with
         | Error (num, tok, err, _) -> printErr (num, tok, err)
-        | Success (_) -> printfn "Success"
+        | Success (tree, _) -> printfn "Success"
 
     member test.``ComplexRightNull test``() =
         let parser = RNGLR.ParseComplexRightNull.buildAst
@@ -113,7 +117,7 @@ type ``RNGLR parser tests with simple lexer`` () =
 
         match run path parser with
         | Error (num, tok, err, _) -> printErr (num, tok, err)
-        | Success (_) -> printfn "Success"
+        | Success (tree, _) -> printfn "Success"
 
     member test.``ComplexRightNull2 test``() =
         let parser = RNGLR.ParseComplexRightNull.buildAst
@@ -121,7 +125,9 @@ type ``RNGLR parser tests with simple lexer`` () =
 
         match run path parser with
         | Error (num, tok, err, _) -> printErr (num, tok, err)
-        | Success (_) -> printfn "Success"
+        | Success (tree, _) -> 
+            printfn "Success"
+            RNGLR.ParseComplexRightNull.defaultAstToDot tree "ast.dot"
 
     member test.``ComplexRightNullWrong test``() =
         let parser = RNGLR.ParseComplexRightNull.buildAst
@@ -129,7 +135,18 @@ type ``RNGLR parser tests with simple lexer`` () =
 
         match run path parser with
         | Error (num, tok, err, _) -> printErr (num, tok, err)
-        | Success (_) -> printfn "Success"
+        | Success (tree, _) -> printfn "Success"
+
+    member test.``CalcEBNF test``() =
+        let parser = RNGLR.ParseCalcEBNF.buildAst
+        let path = dir + "CalcEBNF.txt"
+
+        match run path parser with
+        | Error (num, tok, err, _) -> printErr (num, tok, err)
+        | Success (tree, _) -> 
+            printfn "Success"
+            RNGLR.ParseCalcEBNF.defaultAstToDot tree "calc.ast.dot"
+
 
 [<EntryPoint>]
 (new ``RNGLR parser tests with simple lexer``()).``First grammar test``()
@@ -146,5 +163,6 @@ type ``RNGLR parser tests with simple lexer`` () =
 (new ``RNGLR parser tests with simple lexer``()).``ComplexRightNull test``()
 (new ``RNGLR parser tests with simple lexer``()).``ComplexRightNull2 test``()
 (new ``RNGLR parser tests with simple lexer``()).``ComplexRightNullWrong test``()
+(new ``RNGLR parser tests with simple lexer``()).``CalcEBNF test``()
 
 Console.ReadLine() |> ignore

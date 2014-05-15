@@ -35,7 +35,7 @@ type ParserDebugFuns<'TokenType> = {
 }
 
 type ParseResultEBNF<'TokenType> =
-    | Success of Dictionary<Family, ErrorNode>
+    | Success of Tree<'TokenType> * Dictionary<Family, ErrorNode>
     | Error of int * array<'TokenType> * string * Dictionary<Family, ErrorNode>
 
 /// Compare vertex like a pair: (level, state)
@@ -128,7 +128,7 @@ let private containsEdge (v : Vertex) (s : StackLabel) (f : Family) (out : Resiz
         i <- i - 1
     i >= 0 && (let v',s',f',_ = out.[i] in eq v' v && stLEq s' s && f = f')
 
-(*let drawDot (tokenToNumber : _ -> int) (tokens : BlockResizeArray<_>) (leftSide : int[])
+let drawDot (tokenToNumber : _ -> int) (tokens : BlockResizeArray<_>) (leftSide : int[])
         (initNodes : seq<Vertex>) (numToString : int -> string) (errInd: int) (path : string) =
     use out = new System.IO.StreamWriter (path)
     let was = new Dictionary<_,_>()
@@ -156,7 +156,7 @@ let private containsEdge (v : Vertex) (s : StackLabel) (f : Family) (out : Resiz
             levels.[u.Level] <- !curNum :: levels.[u.Level]
         print <| sprintf "%d [label=\"%d\"]" !curNum u.State
         incr curNum
-        if u.OutEdges.first <> Unchecked.defaultof<_> then
+        if not (u.Level = 0 && u.State = 0) && u.OutEdges.first <> Unchecked.defaultof<_> then
             handleEdge u u.OutEdges.first
             if u.OutEdges.other <> null then
                 u.OutEdges.other |> Array.iter (handleEdge u)
@@ -175,7 +175,7 @@ let private containsEdge (v : Vertex) (s : StackLabel) (f : Family) (out : Resiz
         print <| sprintf "{rank=same; %s}" (level.Value |> List.map (fun (u : int) -> string u) |> String.concat " ")
 
     out.WriteLine "}"
-    out.Close()*)
+    out.Close()
 
 type ReduceLabel =
     |Reduce
@@ -202,7 +202,7 @@ let buildAst<'TokenType> (parserSource : ParserSourceEBNF<'TokenType>) (tokens :
     if not <| enum.MoveNext() || parserSource.EofIndex = parserSource.TokenToNumber enum.Current then
         if parserSource.AcceptEmptyInput 
         then
-            Success (errDict)
+            Success (new Tree<_>(null, getEpsilon startNonTerm, null), errDict)
         else
             Error (0, [||], "This grammar cannot accept empty string",
                     (*{
@@ -685,12 +685,12 @@ let buildAst<'TokenType> (parserSource : ParserSourceEBNF<'TokenType>) (tokens :
         let lastTokens count =
             [| for i = max 0 (tokens.Count-count) to tokens.Count-1 do
                 yield tokens.[i]|]
-        (*let debugFuns () =
+        let debugFuns () =
             let vertices = usedStates.ToArray() |> Array.map (fun i -> stateToVertex.[i])
             {
                 drawGSSDot = drawDot parserSource.TokenToNumber tokens parserSource.LeftSide vertices parserSource.NumToString parserSource.ErrorIndex
                 lastTokens = lastTokens
-            }*)
+            }
         
         if !wasError 
         then 
@@ -701,7 +701,7 @@ let buildAst<'TokenType> (parserSource : ParserSourceEBNF<'TokenType>) (tokens :
                 let children = new Family(parserSource.StartRule,  new Nodes(res, null, null))
                 new AST(children, null)
             for vertex in usedStates do
-                if parserSource.AccStates.[vertex] 
+                if parserSource.AccStates.[vertex]
                 then
                     root :=
                         stateToVertex.[vertex].OutEdges.first.Ast
@@ -710,5 +710,5 @@ let buildAst<'TokenType> (parserSource : ParserSourceEBNF<'TokenType>) (tokens :
             match !root with
             | None -> Error (!curInd, [|!curToken|], "Input was fully processed, but it's not complete correct string.", errDict)
             | Some res -> 
-            //    debugFuns().drawGSSDot "res.dot"
-                Success (errDict)
+                debugFuns().drawGSSDot "res.dot"
+                Success (new Tree<_> (tokens.ToArray(), res, [||]), errDict)

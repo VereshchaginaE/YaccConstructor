@@ -49,8 +49,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="LexCommon.fs" />
+    <Compile Include="Longest.yrd.fs" />
+    <Compile Include="CalcEBNF.yrd.fs" />
     <Compile Include="SimpleOneTermEBNF.yrd.fs" />
-    <Compile Include="LongestEBNF.yrd.fs" />
     <Compile Include="ManyAndOne.yrd.fs" />
     <Compile Include="RightNull.yrd.fs" />
     <Compile Include="SimpleRightNull.yrd.fs" />
