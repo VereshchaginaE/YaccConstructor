@@ -291,7 +291,7 @@ let buildAst<'TokenType> (parserSource : ParserSourceEBNF<'TokenType>) (tokens :
                         |StackingConflict x -> if parserSource.StackSets.[x].Contains prod then true, true else false,true
                     
                     if handle then handlePath path vertex
-                    elif walkFurther && vertex <> null
+                    if walkFurther && vertex <> null
                     then
                         let visitVertex (v : Vertex) s a =
                             if not <| Set.contains (v.Level, v.State) !vertexSet then

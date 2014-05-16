@@ -19,23 +19,6 @@ let inline printErr (num, token : 'a, msg) =
 
 type ``RNGLR parser tests with simple lexer`` () =
 
-    member test.``First grammar test``() =
-        let parser = RNGLR.ParseSimpleOneTerm.buildAst
-        let path = dir + "simpleOneTerm.txt"
-
-        match run path parser with
-        | Error (num, tok, err, _) -> printErr (num, tok, err)
-        | Success (tree, _) -> printfn "Success"
-
-    member test.``Longest test``() =
-        let parser = RNGLR.ParseLongest.buildAst
-        let path = dir + "longest1.txt"
-
-        match run path parser with
-        | Error (num, tok, err, _) -> printErr (num, tok, err)
-        | Success (tree, _) ->
-            printfn "Success"
-            RNGLR.ParseLongest.defaultAstToDot tree "longest.ast.dot"
 
     member test.``Longest epsilon test``() =
         let parser = RNGLR.ParseLongest.buildAst
@@ -147,10 +130,18 @@ type ``RNGLR parser tests with simple lexer`` () =
             printfn "Success"
             RNGLR.ParseCalcEBNF.defaultAstToDot tree "calc.ast.dot"
 
+    member test.``StackingConflictWrong test``() =
+        let parser = RNGLR.ParseStackingConflict.buildAst
+        let path = dir + "StackingConflictWrong.txt"
+
+        match run path parser with
+        | Error (num, tok, err, _) -> printErr (num, tok, err)
+        | Success (tree, _) -> 
+            printfn "Success"
+            RNGLR.ParseStackingConflict.defaultAstToDot tree "StackingConflict.dot"
+
 
 [<EntryPoint>]
-(new ``RNGLR parser tests with simple lexer``()).``First grammar test``()
-(new ``RNGLR parser tests with simple lexer``()).``Longest test``()
 (new ``RNGLR parser tests with simple lexer``()).``Longest epsilon test``()
 (new ``RNGLR parser tests with simple lexer``()).``ManyAndOne epsilon test``()
 (new ``RNGLR parser tests with simple lexer``()).``ManyAndOne one test``()
@@ -164,5 +155,6 @@ type ``RNGLR parser tests with simple lexer`` () =
 (new ``RNGLR parser tests with simple lexer``()).``ComplexRightNull2 test``()
 (new ``RNGLR parser tests with simple lexer``()).``ComplexRightNullWrong test``()
 (new ``RNGLR parser tests with simple lexer``()).``CalcEBNF test``()
+(new ``RNGLR parser tests with simple lexer``()).``StackingConflictWrong test``()
 
 Console.ReadLine() |> ignore

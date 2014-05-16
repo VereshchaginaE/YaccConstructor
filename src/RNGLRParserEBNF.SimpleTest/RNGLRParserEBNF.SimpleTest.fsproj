@@ -57,6 +57,7 @@
     <Compile Include="SimpleRightNull.yrd.fs" />
     <Compile Include="SimpleTwoTerms.yrd.fs" />
     <Compile Include="TwoEpsilonsMiddle.yrd.fs" />
+    <Compile Include="StackingConflict.yrd.fs" />
     <Compile Include="ComplexRightNull.yrd.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
