@@ -58,16 +58,11 @@ type KernelInterpreter =
                 |> fun x -> if !hasEpsilonTail then Set.union x endLookeheads else x
             grammar.rules.symbol rule pos, lookAheads
 
-type StackLabel =
-    | Stack of Set<int>
-    | DontStack
-    | StackingConflict of Set<int>
-
 type ReduceLabel =
     | Reduce
     | StackReduce
 
-type StatesInterpreterEBNF (stateToVertex : Vertex<int,int * StackLabel>[], stateToMainKernels : Kernel[][], stateToMainLookahead : Set<int>[][], stateToDerivedKernels : Kernel[][], stateToDerivedLookahead : Set<int>[][]) =
+type StatesInterpreterEBNF (stateToVertex : Vertex<int,int * (Set<int> * Set<int>)>[], stateToMainKernels : Kernel[][], stateToMainLookahead : Set<int>[][], stateToDerivedKernels : Kernel[][], stateToDerivedLookahead : Set<int>[][]) =
     member this.count = stateToVertex.Length
     member this.vertex i = stateToVertex.[i]
     member this.mainKernels i = stateToMainKernels.[i]
@@ -80,8 +75,8 @@ let buildStatesNFA outTable (grammar : FinalGrammarNFA) = //(kernelIndexator : K
         let num = ref -1
         (fun () -> incr num; !num)
         , (fun () -> !num + 1)
-    let kernelsToVertex = new Dictionary<string, Vertex<int,int * StackLabel>>()
-    let vertices = new ResizeArray<Vertex<int,int * StackLabel> >()
+    let kernelsToVertex = new Dictionary<string, Vertex<int,int * (Set<int> * Set<int>)>>()
+    let vertices = new ResizeArray<Vertex<int,int * (Set<int> * Set<int>)> >()
     let stateToMainKernels = new ResizeArray<Kernel[]>()
     let stateToMainLookahead = new ResizeArray<Set<int>[] >()
     let stateToDerivedKernels = new ResizeArray<Kernel[]>()
@@ -198,7 +193,7 @@ let buildStatesNFA outTable (grammar : FinalGrammarNFA) = //(kernelIndexator : K
         if kernelsToVertex.ContainsKey key then
             kernelsToVertex.[key]
         else
-            let vertex = new Vertex<int,int * StackLabel>(nextIndex())
+            let vertex = new Vertex<int,int * (Set<int> * Set<int>)>(nextIndex())
             //wasEdge.Add Set.empty
             vertices.Add vertex
             kernelsToVertex.[key] <- vertex
@@ -209,12 +204,12 @@ let buildStatesNFA outTable (grammar : FinalGrammarNFA) = //(kernelIndexator : K
             for i = 0 to grammar.indexator.fullCount - 1 do
                 if i <> grammar.indexator.eofIndex then
                     let destStates = new ResizeArray<int * Set<int>>()
-                    let dontStack = ref false
+                    let mutable dontStackSet = Set.empty
                     let mutable stackSet = Set.empty
                     for j = 0 to mainKernels.Length-1 do
                             if curSymbol mainKernels.[j] = i && not mainLookaheads.[j].IsEmpty then
                                 let nextKernels = KernelInterpreter.nextPos grammar mainKernels.[j]
-                                dontStack := true
+                                dontStackSet <- Set.add (KernelInterpreter.getProd mainKernels.[j]) dontStackSet 
                                 for nextKernel in nextKernels do
                                     destStates.Add (nextKernel, mainLookaheads.[j])
                     for j = 0 to derivedKernels.Length-1 do
@@ -226,14 +221,7 @@ let buildStatesNFA outTable (grammar : FinalGrammarNFA) = //(kernelIndexator : K
                     if destStates.Count <> 0 then
                         let newVertex : Vertex<_,_> = destStates.ToArray() |> dfsLR
                         //wasEdge.[vertex.label] <- wasEdge.[vertex.label].Add newVertex.label
-                        let stackLabel = 
-                            if !dontStack then
-                                if  stackSet.IsEmpty then
-                                    DontStack
-                                else StackingConflict stackSet
-                            else
-                                Stack stackSet
-                        vertex.addEdge <| new Edge<_,_>(newVertex, (i, stackLabel))
+                        vertex.addEdge <| new Edge<_,_>(newVertex, (i, (dontStackSet, stackSet)))
             vertex
 
     let initKernels = grammar.startPositions.[grammar.startRule] |> Set.map (fun x -> KernelInterpreter.toKernel(grammar.startRule, x))

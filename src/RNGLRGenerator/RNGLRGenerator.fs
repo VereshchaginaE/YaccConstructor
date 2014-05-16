@@ -160,7 +160,6 @@ type RNGLR() =
 
                     //println "open Yard.Generators.RNGLR.Parser"
                     println "open Yard.Generators.RNGLR"
-                    println "open Yard.Generators.RNGLR.StackLabel"
                     println "open Yard.Generators.RNGLR.EBNF"
                     println "open Yard.Generators.RNGLR.ParserEBNF"                    
                     println "open Yard.Generators.RNGLR.AST"

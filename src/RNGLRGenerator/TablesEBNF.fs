@@ -9,7 +9,7 @@ type TablesEBNF(grammar : FinalGrammarNFA, states : StatesInterpreterEBNF) =
     let _reduces, _gotos, _acc =
         let symbolCount = grammar.indexator.fullCount
         let reduces : list<int * ReduceLabel>[,] = Array2D.create states.count symbolCount []
-        let gotos : list<int * StackLabel>[,] = Array2D.create states.count symbolCount []
+        let gotos : list<int * (Set<int> * Set<int>)>[,] = Array2D.create states.count symbolCount []
         let mutable acc = []
         if grammar.canInferEpsilon.[grammar.rules.leftSide grammar.startRule] then acc <- (*startState*)0::acc
         let endRule = KernelInterpreter.toKernel (grammar.startRule, grammar.rules.numberOfStates grammar.startRule - 1)
@@ -19,8 +19,8 @@ type TablesEBNF(grammar : FinalGrammarNFA, states : StatesInterpreterEBNF) =
             let derivedKernels, derivedLookaheads = states.derivedKernels i, states.derivedLookaheads i
 
             for e in vertex.outEdges do
-                let symbol, stackLabel = e.label
-                gotos.[i, symbol] <- (e.dest.label, stackLabel)::gotos.[i, symbol]
+                let symbol, stackSets = e.label
+                gotos.[i, symbol] <- (e.dest.label, stackSets)::gotos.[i, symbol]
                 if gotos.[i, symbol].Length > 1 then
                     eprintfn "Several gotos form state %d on symbol %d: %A" i symbol gotos.[i, symbol]
             

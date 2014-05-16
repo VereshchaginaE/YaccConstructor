@@ -3,7 +3,6 @@
 module RNGLR.ParseSimpleOneTerm
 #nowarn "64";; // From fsyacc: turn off warnings that type variables used in production annotations are instantiated to concrete type
 open Yard.Generators.RNGLR
-open Yard.Generators.RNGLR.StackLabel
 open Yard.Generators.RNGLR.EBNF
 open Yard.Generators.RNGLR.ParserEBNF
 open Yard.Generators.RNGLR.AST
@@ -36,8 +35,8 @@ let isLiteral = function
 
 let getLiteralNames = []
 let mutable private cur = 0
-let leftSide = [|1; 2|]
-let startRule = 1
+let leftSide = [|2; 1|]
+let startRule = 0
 
 let acceptEmptyInput = false
 
@@ -45,10 +44,10 @@ let defaultAstToDot =
     (fun (tree : Yard.Generators.RNGLR.AST.Tree<Token>) -> tree.AstToDot numToString tokenToNumber leftSide)
 
 let private lists_gotos = [|1; 2|]
-let private stackArrays = [|[|0|]|]
+let private stackArrays = [|[|0|]; [||]; [|1|]|]
 let private stackSets = stackArrays |> Array.map Set.ofArray
 let private small_gotos =
-        [|2; 65536; 0; 196609; 65536|]
+        [|2; 65536; 1; 196609; 65538|]
 let gotos = Array.zeroCreate 3
 for i = 0 to 2 do
         gotos.[i] <- Array.create 5 None
@@ -60,14 +59,13 @@ while cur < small_gotos.Length do
     for k = 0 to length-1 do
         let j = small_gotos.[cur + k*2] >>> 16
         let x = small_gotos.[cur + k*2] &&& 65535
-        let label = small_gotos.[cur + k*2 + 1] >>> 16
-        let setId = small_gotos.[cur + k*2 + 1] &&& 65535
-        let stackLabel = GetStackLabel label setId
-        gotos.[i].[j] <- Some (lists_gotos.[x], stackLabel)
+        let dontStackSetNum = small_gotos.[cur + k*2 + 1] >>> 16
+        let stackSetNum = small_gotos.[cur + k*2 + 1] &&& 65535
+        gotos.[i].[j] <- Some (lists_gotos.[x], (dontStackSetNum, stackSetNum))
     cur <- cur + length * 2
-let private lists_reduces = [|[|0|]|]
+let private lists_reduces = [|[|1|]|]
 let private small_reduces =
-        [|131074; 196608; 262144|]
+        [|131073; 262144|]
 let reduces = Array.zeroCreate 3
 for i = 0 to 2 do
         reduces.[i] <- Array.zeroCreate 5

@@ -2,7 +2,7 @@
 
 
 open Yard.Generators.RNGLR.AST
-open Yard.Generators.RNGLR.StackLabel
+//open Yard.Generators.RNGLR.StackLabel
 open Yard.Generators.RNGLR.EBNF
 open System.Collections.Generic
 open Yard.Generators.RNGLR.DataStructures
@@ -22,10 +22,10 @@ and Edge =
     struct
         /// AST on the edge
         val Ast : obj
-        val StackAction : StackLabel
+        val StackSets : int * int
         /// End of the vertex (begin is not needed)
         val Dest : Vertex
-        new (d, s, a) = {Dest = d; StackAction = s; Ast = a}
+        new (d, s, a) = {Dest = d; StackSets = s ; Ast = a}
     end
 
 type ParserDebugFuns<'TokenType> = {
@@ -42,36 +42,31 @@ type ParseResultEBNF<'TokenType> =
 let inline private less (v' : Vertex) (v : Vertex) = v'.Level < v.Level || (v'.Level = v.Level && v'.State < v.State)
 let inline private eq (v' : Vertex) (v : Vertex) = v'.Level = v.Level && v'.State = v.State
 
-//Compare stack label
-let private stackLabeltoPair = function
-    |DontStack -> (0, 0)
-    |Stack x -> (1, x)
-    |StackingConflict x -> (2, x)
-
-let inline private stLLess (s' : StackLabel) (s : StackLabel) = 
-    let s'x, s'y = stackLabeltoPair s'
-    let sx, sy = stackLabeltoPair s
+//Compare stackSets
+let inline private stLLess (s' : int * int) (s : int * int) = 
+    let s'x, s'y = s'
+    let sx, sy = s
     s'x < sx || (s'x = sx && s'y < sy)
 
-let inline private stLEq (s' : StackLabel) (s : StackLabel) = 
-    let s'x, s'y = stackLabeltoPair s'
-    let sx, sy = stackLabeltoPair s
+let inline private stLEq (s' : int * int) (s : int * int) = 
+    let s'x, s'y = s'
+    let sx, sy = s
     s'x = sx && s'y = sy
 
 /// Add edges, what must be unique (after shift or epsilon-edges).
 /// All edges are sorted by destination ascending.
-let private addSimpleEdge (v : Vertex) (stackLabel : StackLabel) (ast : obj) (out : ResizeArray<Vertex * StackLabel * obj>) =
+let private addSimpleEdge (v : Vertex) (stackSets : int * int) (ast : obj) (out : ResizeArray<Vertex * (int * int) * obj>) =
     let inline fst3 (x,_,_) = x
     let inline snd3 (_,x,_) = x
     let mutable i = out.Count - 1
     while i >= 0 && less (fst3 out.[i]) v do
         i <- i - 1
-    while i >= 0 && eq (fst3 out.[i]) v && stLLess (snd3 out.[i]) stackLabel do
+    while i >= 0 && eq (fst3 out.[i]) v && stLLess (snd3 out.[i]) stackSets do
         i <- i - 1
-    out.Insert (i+1, (v, stackLabel, ast))
+    out.Insert (i+1, (v, stackSets, ast))
 
 /// Check if edge with specified destination and AST already exists
-let private containsSimpleEdge (v : Vertex) (s : StackLabel) (f : obj) (out : ResizeArray<Vertex * StackLabel * obj>) =
+let private containsSimpleEdge (v : Vertex) (s : int * int) (f : obj) (out : ResizeArray<Vertex * (int * int) * obj>) =
     let inline fst3 (x,_,_) = x
     let inline snd3 (_,x,_) = x
     let mutable i = out.Count - 1
@@ -85,7 +80,7 @@ let private containsSimpleEdge (v : Vertex) (s : StackLabel) (f : obj) (out : Re
 
 /// Add or extend edge with specified destination and family.
 /// All edges are sorted by destination ascending.
-let private addEdge (v : Vertex) (s : StackLabel) (family : Family) (out : ResizeArray<Vertex * StackLabel * Family * AST>) isError =
+let private addEdge (v : Vertex) (s : int * int) (family : Family) (out : ResizeArray<Vertex * (int * int) * Family * AST>) isError =
     let mutable i = out.Count - 1
     let inline fst4 (x,_,_,_) = x
     let inline snd4 (_,x,_,_) = x
@@ -116,7 +111,7 @@ let private addEdge (v : Vertex) (s : StackLabel) (family : Family) (out : Resiz
     isCreated, ast
 
 /// Check if edge with specified destination and family already exists
-let private containsEdge (v : Vertex) (s : StackLabel) (f : Family) (out : ResizeArray<Vertex * StackLabel * Family * AST>) =
+let private containsEdge (v : Vertex) (s : int * int) (f : Family) (out : ResizeArray<Vertex * (int * int) * Family * AST>) =
     let inline fst4 (x,_,_,_) = x
     let inline snd4 (_,x,_,_) = x
     let mutable i = out.Count - 1
@@ -220,15 +215,15 @@ let buildAst<'TokenType> (parserSource : ParserSourceEBNF<'TokenType>) (tokens :
         let statesCount = parserSource.Gotos.Length
         // New edges can be created only from last level.
         /// Temporary storage for edges data (after all reductions real edges will be created).
-        let edges = Array.init statesCount (fun _ -> new ResizeArray<Vertex * StackLabel * Family * AST>())
-        let simpleEdges = Array.init statesCount (fun _ -> new ResizeArray<Vertex * StackLabel * obj>())
+        let edges = Array.init statesCount (fun _ -> new ResizeArray<Vertex * (int * int) * Family * AST>())
+        let simpleEdges = Array.init statesCount (fun _ -> new ResizeArray<Vertex * (int * int) * obj>())
 
         let pushes = new Stack<_> (statesCount * 2 + 10)
         /// Stores states, used on current level. Instead statesCount must be number of non-terminals, but doesn't matter
         let usedStates = new Stack<_>(statesCount)
         let stateToVertex : Vertex[] = Array.zeroCreate statesCount
 
-        let addVertex state level (edgeOpt : option<Vertex * StackLabel * obj>) =
+        let addVertex state level (edgeOpt : option<Vertex * (int * int) * obj>) =
             let dict = stateToVertex
             if dict.[state] = null then
                 let v = new Vertex(state, level)
@@ -271,24 +266,22 @@ let buildAst<'TokenType> (parserSource : ParserSourceEBNF<'TokenType>) (tokens :
                     then recovery()//pushes.Clear()
                     else
                         
-                        let state,stackLabel = getExpectedGoto final.State nonTerm
+                        let state, stackSets = getExpectedGoto final.State nonTerm
                         let newVertex = addVertex state num None
                     
                         let family = new Family(prod, new Nodes(Array.ofList path))
-                        if not <| containsEdge final stackLabel family edges.[state] then
-                            let isCreated, edgeLabel = addEdge final stackLabel family edges.[state] false
+                        if not <| containsEdge final stackSets family edges.[state] then
+                            let isCreated, edgeLabel = addEdge final stackSets family edges.[state] false
                             if (rLabel = Reduce && isCreated) then
                                 let arr = parserSource.Reduces.[state].[!curNum]
                                 if arr <> null then
                                     for prod in arr do
-                                        reductions.Push (newVertex, prod, Reduce, Some (final, stackLabel, box edgeLabel))
+                                        reductions.Push (newVertex, prod, Reduce, Some (final, stackSets, box edgeLabel))
 
-                let rec walk (vertex : Vertex) (stackLabel : StackLabel) prod (path : obj list) =
+                let rec walk (vertex : Vertex) (stackSets : (int * int)) prod (path : obj list) =
                     let handle, walkFurther =
-                        match stackLabel with
-                        |DontStack -> false, true
-                        |Stack x -> if parserSource.StackSets.[x].Contains prod then true,false else false,false
-                        |StackingConflict x -> if parserSource.StackSets.[x].Contains prod then true, true else false,true
+                        let dontStackSet, stackSet = stackSets
+                        parserSource.StackSets.[stackSet].Contains prod, parserSource.StackSets.[dontStackSet].Contains prod
                     
                     if handle then handlePath path vertex
                     if walkFurther && vertex <> null
@@ -302,9 +295,9 @@ let buildAst<'TokenType> (parserSource : ParserSourceEBNF<'TokenType>) (tokens :
                             if vertex.OutEdges.other <> null then
                                 vertex.OutEdges.other |> Array.iter
                                     (fun e -> 
-                                        visitVertex e.Dest e.StackAction e.Ast)
+                                        visitVertex e.Dest e.StackSets e.Ast)
                             let e = vertex.OutEdges.first
-                            visitVertex e.Dest e.StackAction e.Ast
+                            visitVertex e.Dest e.StackSets e.Ast
                         else
                             simpleEdges.[vertex.State] |> ResizeArray.iter(fun (v,s,a) ->
                                 visitVertex v s a)
@@ -457,7 +450,7 @@ let buildAst<'TokenType> (parserSource : ParserSourceEBNF<'TokenType>) (tokens :
             try errDict.Add (errFamily, new ErrorNode (errOn, -1, exp, recToks))
             with _ -> ()
 
-        let containsRecState (oldVertices : Stack<Vertex * _ list>)(temp : Queue<_>) recVertNum recovery =
+        (*let containsRecState (oldVertices : Stack<Vertex * _ list>)(temp : Queue<_>) recVertNum recovery =
             let oldVert = oldVertices.ToArray()
             for vertex, path in oldVert do
                 if pushes.Count <> recVertNum
@@ -467,8 +460,8 @@ let buildAst<'TokenType> (parserSource : ParserSourceEBNF<'TokenType>) (tokens :
                     if arr <> null
                     then 
                         for prod in arr do
-                            //probably StackLabel.Stack prod doesn't make sense
-                            let edgeOpt = Some (vertex.OutEdges.first.Dest, StackLabel.Stack prod, vertex.OutEdges.first.Ast)
+                            //It's an issue what to place there as second arg
+                            let edgeOpt = Some (vertex.OutEdges.first.Dest, _, vertex.OutEdges.first.Ast)
                             reductions.Push (vertex, prod, Reduce, edgeOpt)
                         makeReductions !curInd recovery
                         temp.Enqueue path
@@ -487,7 +480,7 @@ let buildAst<'TokenType> (parserSource : ParserSourceEBNF<'TokenType>) (tokens :
                             pushes.Push (vertex, push)
                             temp.Enqueue path
 
-            pushes.Count + reductions.Count >= recVertNum
+            pushes.Count + reductions.Count >= recVertNum*)
 
         ///returns all the vertices from the previous level
         let getPrevVertices (curVertices : Stack<Vertex * _>) = 

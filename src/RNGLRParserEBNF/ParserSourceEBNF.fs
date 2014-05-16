@@ -1,8 +1,8 @@
 ﻿namespace Yard.Generators.RNGLR.EBNF
 
-open Yard.Generators.RNGLR.StackLabel
+//open Yard.Generators.RNGLR.StackLabel
 
-type ParserSourceEBNF<'TokenType> (gotos : (int * StackLabel) option [][]
+type ParserSourceEBNF<'TokenType> (gotos : (int * (int * int)) option [][] //goto consists of number of state where to go to and sets of productions to Stack/not to Stack
                                , reduces : int [][][]
                                , zeroReduces : int[][][]
                                , stackSets : Set<int>[]

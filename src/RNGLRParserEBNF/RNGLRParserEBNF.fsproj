@@ -47,7 +47,6 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EBNF.fs" />
     <Compile Include="ParserSourceEBNF.fs" />
     <Compile Include="ParserEBNF.fs" />
   </ItemGroup>

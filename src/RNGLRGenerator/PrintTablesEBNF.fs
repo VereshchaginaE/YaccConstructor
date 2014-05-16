@@ -157,11 +157,10 @@ let printTablesEBNF
             printBrInd 2 "let j = small_%s.[cur + k*2] >>> 16" name
             printBrInd 2 "let x = small_%s.[cur + k*2] &&& %d" name andNum
             
-            printBrInd 2 "let label = small_%s.[cur + k*2 + 1] >>> 16" name
-            printBrInd 2 "let setId = small_%s.[cur + k*2 + 1] &&& %d" name andNum
-            printBrInd 2 "let stackLabel = GetStackLabel label setId"
+            printBrInd 2 "let dontStackSetNum = small_%s.[cur + k*2 + 1] >>> 16" name
+            printBrInd 2 "let stackSetNum = small_%s.[cur + k*2 + 1] &&& %d" name andNum
 
-            printBrInd 2 "%s.[i].[j] <- Some (lists_%s.[x], stackLabel)" name name
+            printBrInd 2 "%s.[i].[j] <- Some (lists_%s.[x], (dontStackSetNum, stackSetNum))" name name
             printBrInd 1 "cur <- cur + length * 2"
                 
         let printGotoArrList() =
@@ -178,7 +177,7 @@ let printTablesEBNF
 
             let unzipArr = tables.gotos |> Array2D.map List.unzip
             let gotos = unzipArr |> Array2D.map fst
-            let stackLabels = unzipArr |> Array2D.map snd
+            let stackSets = unzipArr |> Array2D.map snd
 
             (*let stackLabelSign = function
             |DontStack -> 0
@@ -197,12 +196,11 @@ let printTablesEBNF
                     if checker gotos.[i,j] then
                         if not <| gotoLists.ContainsKey gotos.[i,j] then
                             gotoLists.Add (gotos.[i,j], nextGoto())
-                        match stackLabels.[i,j].[0] with
-                        | Stack x |StackingConflict x ->  
-                            if not <| stackSetLists.ContainsKey x then
-                                stackSetLists.Add(x, nextStackSet())
-                        | DontStack -> ()
-
+                        let dontStackSet, stackSet = stackSets.[i,j].[0]
+                        if not <| stackSetLists.ContainsKey dontStackSet then
+                                stackSetLists.Add(dontStackSet, nextStackSet())
+                        if not <| stackSetLists.ContainsKey stackSet then
+                                stackSetLists.Add(stackSet, nextStackSet())
             let gotoListsArr = Array.zeroCreate gotoLists.Count
             for v in gotoLists do
                 gotoListsArr.[v.Value] <- v.Key
@@ -236,10 +234,8 @@ let printTablesEBNF
                         print sep
                         print "%d" <| pack j gotoLists.[gotos.[i,j]]
                         print sep
-                        match stackLabels.[i,j].[0] with
-                        | DontStack -> print "%d" <| pack 0 0
-                        | Stack x -> print "%d" <| pack 1 stackSetLists.[x]
-                        | StackingConflict x -> print "%d" <| pack 2 stackSetLists.[x]
+                        let dontStackSet, stackSet = stackSets.[i,j].[0]
+                        print "%d" <| pack stackSetLists.[dontStackSet] stackSetLists.[stackSet]
                         cur <- cur + 1
                         if cur > next then
                             next <- next + 1000
