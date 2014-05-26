@@ -31,7 +31,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>C:\Projects\recursive-ascent\src\..\Bin\Release\v40\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -58,6 +58,9 @@
     <Compile Include="TwoEpsilonsMiddle.yrd.fs" />
     <Compile Include="StackingConflict.yrd.fs" />
     <Compile Include="ComplexRightNull.yrd.fs" />
+    <Compile Include="SimpleSome.yrd.fs" />
+    <Compile Include="ManyAndOpt.yrd.fs" />
+    <Compile Include="SimpleOpt.yrd.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
   </ItemGroup>

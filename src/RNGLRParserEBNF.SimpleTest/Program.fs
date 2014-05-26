@@ -168,6 +168,50 @@ type ``RNGLR parser tests with simple lexer`` () =
             RNGLR.ParseStackingConflict.defaultAstToDot tree "StackingConflict.dot"
         printfn ""
 
+    member test.``ManyAndOpt test``() =
+        let parser = RNGLR.ParseManyAndOpt.buildAst
+        let path = dir + "ManyAndOpt.txt"
+        printfn "Success Expected"
+
+        match run path parser with
+        | Error (num, tok, err, _) -> printErr (num, tok, err)
+        | Success (tree, _) -> 
+            printfn "Success"
+        printfn ""
+
+    member test.``SimpleOpt test``() =
+        let parser = RNGLR.ParseSimpleOpt.buildAst
+        let path = dir + "SimpleOpt.txt"
+        printfn "Success Expected"
+
+        match run path parser with
+        | Error (num, tok, err, _) -> printErr (num, tok, err)
+        | Success (tree, _) -> 
+            printfn "Success"
+        printfn ""
+
+    member test.``SimpleSome test``() =
+        let parser = RNGLR.ParseSimpleSome.buildAst
+        let path = dir + "SimpleSome.txt"
+        printfn "Success Expected"
+
+        match run path parser with
+        | Error (num, tok, err, _) -> printErr (num, tok, err)
+        | Success (tree, _) -> 
+            printfn "Success"
+        printfn ""
+
+    member test.``SimpleOpt epsilon test``() =
+        let parser = RNGLR.ParseSimpleOpt.buildAst
+        let path = dir + "simpleEpsilon.txt"
+        printfn "Success Expected"
+
+        match run path parser with
+        | Error (num, tok, err, _) -> printErr (num, tok, err)
+        | Success (tree, _) -> 
+            printfn "Success"
+        printfn ""
+
 [<EntryPoint>]
 (new ``RNGLR parser tests with simple lexer``()).``Longest epsilon test``()
 (new ``RNGLR parser tests with simple lexer``()).``ManyAndOne epsilon test``()
@@ -183,5 +227,9 @@ type ``RNGLR parser tests with simple lexer`` () =
 (new ``RNGLR parser tests with simple lexer``()).``ComplexRightNullWrong test``()
 (new ``RNGLR parser tests with simple lexer``()).``CalcEBNF test``()
 (new ``RNGLR parser tests with simple lexer``()).``StackingConflictWrong test``()
+(new ``RNGLR parser tests with simple lexer``()).``ManyAndOpt test``()
+(new ``RNGLR parser tests with simple lexer``()).``SimpleOpt test``()
+(new ``RNGLR parser tests with simple lexer``()).``SimpleSome test``()
+(new ``RNGLR parser tests with simple lexer``()).``SimpleOpt epsilon test``()
 
 Console.ReadLine() |> ignore

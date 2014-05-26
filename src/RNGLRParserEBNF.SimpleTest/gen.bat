@@ -1,7 +1,7 @@
 
 del log.txt
 
-for %%i in (CalcEBNF, ComplexRightNull, Longest, ManyAndOne, RightNull, SimpleOneTerm, SimpleRightNull, SimpleTwoTerms, StackingConflict, TwoEpsilonsMiddle) do (
+for %%i in (CalcEBNF, ComplexRightNull, Longest, ManyAndOne, ManyAndOpt, RightNull, SimpleOneTerm, SimpleOpt, SimpleRightNull, SimpleSome, SimpleTwoTerms, StackingConflict, TwoEpsilonsMiddle) do (
 		echo . >> log.txt
 		echo %%i >> log.txt
     ..\..\bin\Release\v40\YaccConstructor.exe -i %%i.yrd -c ExpandMeta ^

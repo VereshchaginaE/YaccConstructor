@@ -39,6 +39,8 @@ type Indexator (ruleList : Rule.t<Source.t,Source.t> list, caseSensitive) =
             | PAlt (x, y) -> 
                 let terms, lits = collectTermsAndLits (accTerms, accLiterals) x
                 collectTermsAndLits (terms, lits) y
+            | POpt x -> collectTermsAndLits (accTerms, accLiterals) x
+            | PSome x -> collectTermsAndLits (accTerms, accLiterals) x
             | x -> failwithf "Unexpected construction %A in grammar" x
                     
         rules

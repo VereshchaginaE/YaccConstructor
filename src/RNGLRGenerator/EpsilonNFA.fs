@@ -21,7 +21,7 @@ let canInferEpsilonNFA (rules : NumberedRulesDFA) (indexator : Indexator) =
                         let rec checkEdges = function
                         |[] -> false
                         |(x : Edge<_,_>)::xs ->
-                            if result.[x.label] && checkEpsilon x.dest.label then true
+                            if result.[x.label] && x.dest.label > stateNum && checkEpsilon x.dest.label then true
                             else checkEdges xs
                         stateVertex.outEdges |> List.ofSeq |> checkEdges
                 if checkEpsilon 0 then
