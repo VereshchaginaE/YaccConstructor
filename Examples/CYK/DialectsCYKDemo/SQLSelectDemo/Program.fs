@@ -1,8 +1,12 @@
 ﻿let mutable path = None
+let mutable pNamePattern = "*"
 let commandLineSpecs =
-    ["-i", ArgType.String (fun s ->
-                                path <- Some s ), "Input text"         
-    ] |> List.map (fun (shortcut, argtype, description) -> ArgInfo(shortcut, argtype, description))
+    [
+    ("-i", ArgType.String (fun s -> path <- Some s ), "Input text");
+    ("-t", ArgType.String (fun s -> pNamePattern <- s), "Type of algorithm. 
+        Expected: \"CPU\", \"debug\" or GPGPU platform name pattern: \"*\", \"AMD*\", \"NVIDIA*\"")
+    ] 
+    |> List.map (fun (shortcut, argtype, description) -> ArgInfo(shortcut, argtype, description))
 
 let run input =
     let  buf = Lexing.LexBuffer<_>.FromTextReader input
@@ -18,28 +22,22 @@ let run input =
         ts
         |> Yard.Generators.CYK.CodeTokenStream
         
-    let cyk = new Yard.Generators.CYKGenerator.CYKCoreForGPU()
-    printfn "CYK"
-    cyk.Recognize (Yard.Generators.CYK.rules, Yard.Generators.CYK.StartNTerm) tokens (fun x y z -> x + y + z) Yard.Generators.CYK.lblName
-
-let runForGPU isDebug input =
-    let  buf = Lexing.LexBuffer<_>.FromTextReader input
-    let ts =  
-        seq { 
-                while not buf.IsPastEndOfStream do
-                let t = Lexer.tokens buf
-                yield t
-            }
-        |> Array.ofSeq
-
-    let tokens =
-        ts
-        |> Yard.Generators.CYK.CodeTokenStream
-        
-    let cyk = new Yard.Generators.CYKGenerator.CYKOnGPU("*", isDebug)
-    if isDebug then printfn "CYK on CPU"
-    else printfn "CYK on GPU"
-    cyk.Recognize (Yard.Generators.CYK.rules, Yard.Generators.CYK.StartNTerm) tokens (fun x y z -> x + y + z) Yard.Generators.CYK.lblName
+    //let cyk = 
+    match pNamePattern with
+    | "cpu" -> 
+        let cyk = new Yard.Generators.CYKGenerator.CYKCoreForGPU()
+        printfn "CYK"
+        cyk.Recognize (Yard.Generators.CYK.rules, Yard.Generators.CYK.StartNTerm) tokens (fun x y z -> x + y + z) Yard.Generators.CYK.lblName
+    | "debug" ->
+        let isDebug = true
+        let cyk = new Yard.Generators.CYKGenerator.CYKOnGPU("", isDebug)
+        printfn "CYK on CPU"
+        cyk.Recognize (Yard.Generators.CYK.rules, Yard.Generators.CYK.StartNTerm) tokens (fun x y z -> x + y + z) Yard.Generators.CYK.lblName    
+    | _ ->
+        let isDebug = false
+        let cyk = new Yard.Generators.CYKGenerator.CYKOnGPU(pNamePattern, isDebug)
+        printfn "CYK on GPU"
+        cyk.Recognize (Yard.Generators.CYK.rules, Yard.Generators.CYK.StartNTerm) tokens (fun x y z -> x + y + z) Yard.Generators.CYK.lblName    
 
 let time (run : System.IO.StreamReader -> string) =    
     let start = System.DateTime.Now
@@ -53,7 +51,5 @@ let time (run : System.IO.StreamReader -> string) =
         printfn "%s" "Input file name not specified."
     
 do 
-    //time (run)
-    //time (runForGPU true)
-    time (runForGPU false)
+    time (run)
     
