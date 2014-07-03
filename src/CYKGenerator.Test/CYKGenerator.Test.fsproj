@@ -56,6 +56,9 @@
       <HintPath>..\packages\YC.Tools.0.0.6.7\lib\net40\FsYacc.exe</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Helper">
+      <HintPath>..\..\Bin\Release\v40\Helper.dll</HintPath>
+    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>
@@ -72,19 +75,12 @@
       <Project>{94eeea1d-60e8-45f8-b6cb-ba0b0fb487b8}</Project>
       <Private>True</Private>
     </ProjectReference>
-    <ProjectReference Include="..\Helper\Helper.fsproj">
-      <Name>Helper</Name>
-      <Project>{fc9a166c-780d-4d15-b366-ca06277c803d}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\YardFrontend\YardFrontend.fsproj">
-      <Name>YardFrontend</Name>
-      <Project>{a090e3b0-0516-44f3-9fba-6ef8cb21926e}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <Reference Include="YaccConstructor">
       <HintPath>..\packages\YC.Core.0.0.6.5\lib\net40\YaccConstructor.exe</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="YardFrontend">
+      <HintPath>..\..\Bin\Release\v40\YardFrontend.dll</HintPath>
     </Reference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
