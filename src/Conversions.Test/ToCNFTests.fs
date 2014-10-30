@@ -28,21 +28,28 @@ open Yard.Core.Helpers
 open Conversions.TransformAux
 open NUnit.Framework
 open ConversionsTests
+open Yard.Core.Helpers
 
 [<TestFixture>]
 type ``CNF tests`` () =
     let basePath = System.IO.Path.Combine(conversionTestPath, "ToCNF")
     let fe = getFrontend("YardFrontend")
-    let conversionCNF = "ToCNF"
-    let conversionExpandTLAlt = "ExpandTopLevelAlt"
-    let conversionChain = "DeleteChainRule"
-    let conversionEps = "DeleteEpsRule"
+    let conversionCNF = new Conversions.ToCNF.ToCNF()
+    let conversionExpandTLAlt = new Conversions.ExpandTopLevelAlt.ExpandTopLevelAlt()
+    let conversionChain = new Conversions.ToCNF.DeleteChainRule()
+    let conversionEps = new Conversions.ToCNF.DeleteEpsRule()
+
+    let applyConversion (conversion:Conversion) loadIL = 
+        {
+            loadIL
+                with grammar = conversion.ConvertGrammar (loadIL.grammar, [||])                               
+        }
 
     [<Test>]
     member test.``ToCNF test`` () =
         let loadIL = fe.ParseGrammar (System.IO.Path.Combine(basePath,"cnf_0.yrd"))
         Namer.initNamer loadIL.grammar
-        let result = ConversionsManager.ApplyConversion conversionCNF loadIL
+        let result = applyConversion conversionCNF loadIL
         let rules = 
             (verySimpleRules "e"
                 [{
@@ -76,7 +83,7 @@ type ``CNF tests`` () =
     member test.``Delete chain-rule`` () =
         let loadIL = fe.ParseGrammar (System.IO.Path.Combine(basePath,"chain_0.yrd"))
         Namer.initNamer loadIL.grammar
-        let result = ConversionsManager.ApplyConversion conversionChain loadIL
+        let result = applyConversion conversionChain loadIL
         let rules =
             (verySimpleRules "e"
                 [{
@@ -105,7 +112,7 @@ type ``CNF tests`` () =
     member test.``delete Eps rule test 1`` () =
         let loadIL = fe.ParseGrammar (System.IO.Path.Combine(basePath,"eps_0.yrd"))
         Namer.initNamer loadIL.grammar
-        let result = ConversionsManager.ApplyConversion conversionEps loadIL
+        let result = applyConversion conversionEps loadIL
         let rules =
             (verySimpleRules "e"
                 [{
@@ -133,7 +140,7 @@ type ``CNF tests`` () =
     [<Test>]
     member test.``delete Eps rule test 2`` () =
         let loadIL = fe.ParseGrammar (System.IO.Path.Combine(basePath,"eps_1.yrd"))
-        let result = loadIL |> ConversionsManager.ApplyConversion conversionExpandTLAlt |> ConversionsManager.ApplyConversion conversionCNF
+        let result = loadIL |> applyConversion conversionExpandTLAlt |> applyConversion conversionCNF
         let expected =
             defaultDefinition
                 [{name = Source.t "x";
@@ -210,7 +217,7 @@ type ``CNF tests`` () =
     member test.``delete Eps rule test 3`` () =
         //Namer.resetRuleEnumerator()
         let loadIL = fe.ParseGrammar (System.IO.Path.Combine(basePath,"eps_2.yrd"))
-        let result = loadIL |> ConversionsManager.ApplyConversion conversionExpandTLAlt |> ConversionsManager.ApplyConversion conversionCNF
+        let result = loadIL |> applyConversion conversionExpandTLAlt |> applyConversion conversionCNF
         let expected = 
             defaultDefinition
                    [{name = Source.t "x";

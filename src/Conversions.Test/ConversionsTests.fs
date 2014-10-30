@@ -23,30 +23,47 @@ open Yard.Core
 open Yard.Core.IL
 open Yard.Core.IL.Production
 open Yard.Core.IL.Definition
+open Yard.Core.Helpers
 open Conversions.TransformAux
 open NUnit.Framework
-
+open Mono.Addins
 
 let dummyPos s = new Source.t(s)
 let dummyToken s = PToken <| new Source.t(s)
 
 exception FEError of string
-let ConversionsManager = ConversionsManager.ConversionsManager()
-let FrontendsManager = Yard.Core.FrontendsManager.FrontendsManager()
+
+let ConversionsManager = AddinManager.GetExtensionObjects (typeof<Conversion>) |> Seq.cast<Conversion>
+let FrontendsManager = AddinManager.GetExtensionObjects (typeof<Frontend>) |> Seq.cast<Frontend>
 
 let conversionTestPath = @"../../../Tests/Conversions/"
-let GeneratorsManager = Yard.Core.GeneratorsManager.GeneratorsManager()
-let getFrontend name =
-        match FrontendsManager.Component name with
-        | Some fe -> fe
-        | None -> failwith (name + " is not found.")
+let GeneratorsManager = AddinManager.GetExtensionObjects (typeof<Generator>) |> Seq.cast<Generator>
+
+let getFrontend name =       
+    match Seq.tryFind (fun (elem : Frontend) -> elem.Name = name) FrontendsManager with
+    | Some fe -> fe
+    | None -> failwith (name + " is not found.")
+
 let getBE name =
-    match GeneratorsManager.Component name with
+    match Seq.tryFind (fun (elem : Generator) -> elem.Name = name) GeneratorsManager with
     | Some be -> be
     | None -> failwith (name + " is not found.")
-let treeDump = getBE "TreeDump"
+
+let treeDump = new Yard.Generators.TreeDump.TreeDump ()
 
 let dummyRule : elem<Source.t,Source.t> = {omit=false; binding=None; checker=None; rule=PToken (Source.t "DUMMY")}
+
+let expandBrackets = new Conversions.ExpandBrackets.ExpandBrackets()
+let expandMeta = new Conversions.ExpandMeta.ExpandMeta()
+let expandEbnf = new Conversions.ExpandEbnfStrict.ExpandEbnf()
+let expandInnerAlt = new Conversions.ExpandInnerAlt.ExpandInnerAlt()
+let expandTopLevelAlt = new Conversions.ExpandTopLevelAlt.ExpandTopLevelAlt()
+
+let applyConversion (conversion:Conversion) loadIL = 
+    {
+        loadIL
+            with grammar = conversion.ConvertGrammar (loadIL.grammar, [||])                               
+    }
 
 [<TestFixture>]
 type ``Conversions tests`` () =
@@ -64,7 +81,7 @@ type ``Conversions tests`` () =
             |> simpleRules "s"
         let ilTree = defaultDefinition rules
         Namer.initNamer ilTree.grammar
-        let ilTreeConverted = ConversionsManager.ApplyConversion "ExpandBrackets" ilTree
+        let ilTreeConverted =  applyConversion expandBrackets ilTree
 #if DEBUG
         printfn "%A" ilTreeConverted
 #endif
@@ -86,9 +103,11 @@ type ``Conversions tests`` () =
     
     [<Test>]
     member test.``ExpandBrackets. Sequence as sequence element test.``()=
-        let FrontendsManager = Yard.Core.FrontendsManager.FrontendsManager() 
+        AddinManager.Initialize()
+        //let FrontendsManager = Yard.Core.FrontendsManager.FrontendsManager() 
+        let FrontendsManager = AddinManager.GetExtensionObjects (typeof<Frontend>) |> Seq.cast<Frontend>
         let frontend =
-            match FrontendsManager.Component "YardFrontend" with
+            match Seq.tryFind (fun (elem : Frontend) -> elem.Name = "YardFrontend") FrontendsManager with
                | Some fron -> fron
                | None -> failwith "YardFrontend is not found."         
         let ilTree = 
@@ -97,10 +116,10 @@ type ``Conversions tests`` () =
         Namer.initNamer ilTree.grammar
         let ilTreeConverted = 
             ilTree 
-            |> ConversionsManager.ApplyConversion "ExpandMeta"   
-            |> ConversionsManager.ApplyConversion "ExpandEbnf"
-            |> ConversionsManager.ApplyConversion "ExpandInnerAlt"
-            |> ConversionsManager.ApplyConversion "ExpandBrackets"
+            |> applyConversion expandMeta
+            |> applyConversion expandEbnf
+            |> applyConversion expandInnerAlt
+            |> applyConversion expandBrackets
         let hasNotInnerSeq = 
             ilTreeConverted.grammar
             |> List.forall (fun m ->
@@ -118,8 +137,8 @@ type ``Conversions tests`` () =
             
 #if DEBUG
         let generator = 
-           match GeneratorsManager.Component  "TreeDump" with
-           | Some gen -> gen
+           match Seq.tryFind (fun (elem : Generator) -> elem.Name = "TreeDump") GeneratorsManager with
+           | Some gen -> gen    
            | None -> failwith "TreeDump is not found."
         printfn "%A\n" (generator.Generate ilTreeConverted)
 #endif
@@ -129,15 +148,14 @@ type ``Conversions tests`` () =
         Assert.True(hasNotInnerSeq)
    
 [<TestFixture>]
-type ``Expand rop level alters`` () =
+type ``Expand top level alters`` () =
     let basePath = System.IO.Path.Combine(conversionTestPath, "ExpandTopLevelAlters")
-    let fe = getFrontend("YardFrontend")
-    let conversion = "ExpandTopLevelAlt"
+    let fe = getFrontend("YardFrontend")    
 
     [<Test>]
     member test.``No alter`` () =
         let loadIL = fe.ParseGrammar (System.IO.Path.Combine(basePath,"noAlters.yrd"))
-        let result = ConversionsManager.ApplyConversion conversion loadIL
+        let result = applyConversion expandTopLevelAlt loadIL
         let rules =
             (verySimpleRules "s"
                 [{dummyRule with rule = PRef (Source.t "d", None)}]
@@ -155,7 +173,7 @@ type ``Expand rop level alters`` () =
     [<Test>]
     member test.``One alter`` () =
         let loadIL = fe.ParseGrammar (System.IO.Path.Combine(basePath,"oneAlter.yrd"))
-        let result = ConversionsManager.ApplyConversion conversion loadIL
+        let result = applyConversion expandTopLevelAlt loadIL
         let rules =
             (verySimpleRules "s"
                 [{dummyRule with rule = PRef (Source.t "c", None)}]
@@ -174,7 +192,7 @@ type ``Expand rop level alters`` () =
     [<Test>]
     member test.``Multi alters`` () =
         let loadIL = fe.ParseGrammar (System.IO.Path.Combine(basePath,"multiAlters.yrd"))
-        let result = ConversionsManager.ApplyConversion conversion loadIL
+        let result = applyConversion expandTopLevelAlt loadIL
         let rules =
             (verySimpleRules "s"
                 [{dummyRule with rule = PRef (Source.t "x", None)}]
