@@ -165,3 +165,5 @@ src/RNGLRAbstractParser.Test/res.dot
 BuildScripts/TestResult.xml
 src/TSQL/*.dot
 src/RNGLRParser.SimpleTest/*.dot
+src/SQLSelectDemo/SelectDemo.fs
+src/SQLSelectDemo/SelectDemo.yrd.CYK.fs

@@ -1,4 +1,4 @@
-﻿include "../../../../GrammarTemplates/Common.yrd"
+﻿include "../../GrammarTemplates/Common.yrd"
 
 [<AllPublic>]
 module MsCommon

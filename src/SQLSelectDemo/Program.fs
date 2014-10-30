@@ -1,4 +1,6 @@
-﻿let mutable path = None
+﻿open Microsoft.FSharp.Text
+
+let mutable path = None
 let mutable pNamePattern = "*"
 let commandLineSpecs =
     [

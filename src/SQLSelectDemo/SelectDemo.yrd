@@ -24,7 +24,7 @@ open Microsoft.FSharp.Text.Lexing
 open Yard.Utils.SourceText
 }
 
-include "../../../../GrammarTemplates/Common.yrd"
+include "../../GrammarTemplates/Common.yrd"
 include "MsCommon.yrd"
 
 module Main
