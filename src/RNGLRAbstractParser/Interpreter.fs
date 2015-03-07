@@ -231,19 +231,19 @@ let buildAstAbstract<'TokenType> (parserSource : ParserSource<'TokenType>) (toke
                     let family = new Family(prod, new Nodes(Array.copy path))
                     if not <| containsEdge final family edges.[state] then
                         let isCreated, edgeLabel = addEdge final family edges.[state]
-                        if (pos > 0 && isCreated) then
+                        if pos > 0 && isCreated then
                             if curTokens.Value.Tokens.Length = 0
-                                then
-                                    let arr = parserSource.Reduces.[state].[parserSource.EofIndex]
+                            then
+                                let arr = parserSource.Reduces.[state].[parserSource.EofIndex]
+                                if arr <> null then
+                                    for (prod, pos) in arr do
+                                        reductions.Push (newVertex, prod, pos, Some (final, box edgeLabel))
+                            else
+                                for tok in curTokens.Value.Tokens do 
+                                    let arr = parserSource.Reduces.[state].[tok.CurNum]
                                     if arr <> null then
                                         for (prod, pos) in arr do
                                             reductions.Push (newVertex, prod, pos, Some (final, box edgeLabel))
-                                else
-                                    for tok in curTokens.Value.Tokens do 
-                                        let arr = parserSource.Reduces.[state].[tok.CurNum]
-                                        if arr <> null then
-                                            for (prod, pos) in arr do
-                                                reductions.Push (newVertex, prod, pos, Some (final, box edgeLabel))
 
                 let rec walk remainLength (vertex : Vertex) path =
                     if remainLength = 0 then handlePath path vertex
